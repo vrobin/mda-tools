@@ -2,18 +2,42 @@
 
 use strict;
 use Tkx;
-use Tk::DirSelect;
+#use Tk::DirSelect;
+use Log::Log4perl qw(:easy);
 
-Tkx::package("require", "tile");
-Tkx::package("require", "Tktable");
-Tkx::package("require", "BWidget");
 Tkx::package("require", "treectrl");
-Tkx::package("require", "snit");
-Tkx::package("require", "tooltip");
-Tkx::package("require", "img::png");
+Tkx::ttk__setTheme("xpnative");
+
+
+binmode STDOUT, ":utf8";
+binmode STDERR, ":utf8";
+
+my $conf = q(
+        log4perl.logger                    = INFO, ScreenApp
+        log4perl.appender.FileApp          = Log::Log4perl::Appender::File
+        log4perl.appender.FileApp.filename = test.log
+        log4perl.appender.FileApp.layout   = PatternLayout
+        log4perl.appender.FileApp.layout.ConversionPattern = %d> %m%n
+	    log4perl.appender.ScreenApp          = Log::Log4perl::Appender::Screen
+	    log4perl.appender.ScreenApp.stderr   = 0
+	    log4perl.appender.ScreenApp.layout   = PatternLayout
+	    log4perl.appender.ScreenApp.layout.ConversionPattern = %p: %F{1}-%L (%M)> %m%n 
+	    #%d> %m%n        
+    );
+
+# Initialize logging behaviour
+Log::Log4perl->init( \$conf );
+
+
+#Tkx::package("require", "tile");
+#Tkx::package("require", "Tktable");
+#Tkx::package("require", "BWidget");
+#Tkx::package("require", "snit");
+#Tkx::package("require", "tooltip");
+#Tkx::package("require", "img::png");
 
 # Set widget theme used
-Tkx::ttk__setTheme("xpnative");
+
 
 # Print the list of available themes: 
 # xpnative clam alt classic default winnative
@@ -42,7 +66,7 @@ my $button = $mw->new_ttk__button(
             -orient => ($pw->cget(-orient) eq "horizontal")?"vertical":"horizontal") }
 );
 
-my $tree = $pw->new_treectrl();
+## in class # my $tree = $pw->new_treectrl();
 #my $labx1 = $pw->new_ttk__label( -text => "Bapy", -foreground => "orange" , -background=>"black");
 
 #my $dirTree = Tkx::tk___chooseDirectory(-initialdir => ".");
