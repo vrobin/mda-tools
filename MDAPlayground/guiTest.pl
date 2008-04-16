@@ -4,8 +4,11 @@ use strict;
 use Tkx;
 #use Tk::DirSelect;
 use Log::Log4perl qw(:easy);
+use DirExplorerTree;
 
 Tkx::package("require", "treectrl");
+Tkx::package("require", "tile");
+Tkx::package("require", "img::png");
 Tkx::ttk__setTheme("xpnative");
 
 
@@ -34,7 +37,7 @@ Log::Log4perl->init( \$conf );
 #Tkx::package("require", "BWidget");
 #Tkx::package("require", "snit");
 #Tkx::package("require", "tooltip");
-#Tkx::package("require", "img::png");
+
 
 # Set widget theme used
 
@@ -51,6 +54,7 @@ print Tkx::ttk__themes()."\n";
 # Create main window
 my $mw = Tkx::widget->new(".");
 $mw->configure(-menu => mk_menu($mw));
+Tkx::wm("title", $mw, "test");
 
 # Create PanedWindow (tree on the left, content on the right part)
 my $pw = $mw->new_ttk__panedwindow(
@@ -61,12 +65,18 @@ my $pw = $mw->new_ttk__panedwindow(
 # PanedWindow (no more working with tkx because orientation is read only)
 my $button = $mw->new_ttk__button(
      -text => "h/v",
-     -command => sub {
+     -command => sub {$pw->g_pack(-fill => "both", -expand => "yes");
+     	Tkx::update(); return;
         $pw->config(
             -orient => ($pw->cget(-orient) eq "horizontal")?"vertical":"horizontal") }
 );
 
 ## in class # my $tree = $pw->new_treectrl();
+
+my $dirTree=DirExplorerTree->new();
+$dirTree->parentWindow($pw);
+$dirTree->init();
+
 #my $labx1 = $pw->new_ttk__label( -text => "Bapy", -foreground => "orange" , -background=>"black");
 
 #my $dirTree = Tkx::tk___chooseDirectory(-initialdir => ".");
@@ -74,51 +84,13 @@ my $button = $mw->new_ttk__button(
 my $labx2 = $pw->new_ttk__label( -text => "Mojo", -foreground=> "white" , -background=>"red");
 #$pw->add($labx1, -weight  =>2);
 #$pw->add($dirTree, -weight  =>2);
-$pw->add($tree, -weight  =>2);
-$pw->add($labx2, -weight  =>2);
+$pw->add($dirTree->tree, -weight  =>2);
+#$pw->add($labx2, -weight  =>2);
 $pw->g_pack(-fill => "both", -expand => "yes");
 $button->g_pack( -expand => "no");
 
-$tree->configure(-selectmode => 'browse',
-					-showroot => 'no',
-					-showrootbutton => 'no', 
-					-showbuttons => 'no',
-					-showlines => 'no',
-					-xscrollincrement => 20);
-
-my $folderPicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/folder.png");
-my $homePicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/house.png");
-my $musicPicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/music.png");
-my $mdaAwarePicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/folder_star.png");
 
 
-my $column = $tree->column("create", -text=>"taper sur", -image => $folderPicto, -tags =>"folder");
-$tree->configure(-treecolumn => 'folder');
-my $column2 = $tree->column("create", -text=>"ваий");
-
-$tree->element("create", "folderImg", "image", -image => $folderPicto);
-$tree->element("create", "folderTxt", "text");
-
-my $style1=$tree->style("create", "s1");
-#my $style2=$tree->style("create", "s2");
-$tree->style('elements', $style1, 'folderImg folderTxt');
-#$tree->style('elements', $style2, 'folderImg folderTxt');
-$tree->style("layout", $style1,  "folderImg", -expand=>'ns');
-$tree->style("layout", $style1,  "folderTxt", -padx => '2 6', -squeeze=>'x', -expand=>'ns');
-
-$tree->column('configure', 'folder', -itemstyle => 's1');
-
-my $root = $tree->item("id", "root");
-print $root;
-my $itemfils=$tree->item("create");
-my $itemfils2=$tree->item("create");
-$tree->item("lastchild", $root, $itemfils);
-$tree->item("lastchild", $itemfils, $itemfils2);
-
-$tree->item("text", $itemfils, "folder", "Allo?" );
-$tree->item("text", $itemfils2, "folder", "A l'huile!" );
-
-print $tree->item("create", -count => 5);
 
 #$tree->item("element", "configure", 5, -text  => "hello");
 (my $progname = $0) =~ s,.*[\\/],,;
