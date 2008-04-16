@@ -37,7 +37,7 @@ sub init {
 					-showroot => 'yes',
 					-showrootbutton => 'no', 
 					-showbuttons => 'yes',
-					-showlines => 'no',
+					-showlines => 'yes',
 					-xscrollincrement => 20);
 					
 	my $folderPicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/folder.png");
@@ -103,23 +103,33 @@ sub init {
 		$tree->item("lastchild", $item, $itemC3);
 		$tree->item("text", $itemC3, "folderTag", "itemC3" );	}
 	
-#	$tree->notify("bind", $tree, "<Expand-before>", [
-#       sub {
-#       	   my $t = shift;
-#           my $i = shift;
-#           my $item=$tree->item("create", -button => 'yes');
-#				#$tree->item("collapse", $item);
-#				$tree->item("text", $item, "folderTag", "TEST" );           
-#				$tree->item("lastchild", $i, $item);
-#          # print "Clicked at $i\n";
-#          #Tkx::update("idletasks");
-#          return $i;
-#       },    Tkx::Ev("%T", "%I")]);
+	$tree->notify("bind", $tree, "<Expand-before>", [
+       sub {
+       	   my $t = shift;
+           my $i = shift;
+           my $item=$tree->item("create", -button => 'yes');
+				#$tree->item("collapse", $item);
+				$tree->item("text", $item, "folderTag", "TEST" );           
+				$tree->item("lastchild", $i, $item);
+				$tree->item("collapse", $item);
+          # print "Clicked at $i\n";
+          #Tkx::update("idletasks");
+          return $i;
+       },    Tkx::Ev("%T", "%I")]);
 	$tree->notify("bind", $tree, "<Expand-after>", [
        sub {
-          Tkx::update();
+       	my $t = shift;
+       	my $i = shift;
+       	$tree->item("configure", $i, -button => 'yes');
+          #Tkx::update();
        },    Tkx::Ev("%T", "%I")]);   
-
+	$tree->notify("bind", $tree, "<Collapse-after>", [
+       sub {
+       	my $t = shift;
+       	my $i = shift;
+       	$tree->item("configure", $i, -button => 'yes');
+          #Tkx::update();
+       },    Tkx::Ev("%T", "%I")]); 
 
 #	die;
 #	my $itemfils=$tree->item("create");
