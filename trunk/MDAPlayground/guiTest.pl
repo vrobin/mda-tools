@@ -9,7 +9,7 @@ use DirExplorerTree;
 Tkx::package("require", "treectrl");
 Tkx::package("require", "tile");
 Tkx::package("require", "img::png");
-Tkx::ttk__setTheme("xpnative");
+Tkx::ttk__setTheme("winnative");
 
 
 binmode STDOUT, ":utf8";
@@ -85,7 +85,7 @@ my $labx2 = $pw->new_ttk__label( -text => "Mojo", -foreground=> "white" , -backg
 #$pw->add($labx1, -weight  =>2);
 #$pw->add($dirTree, -weight  =>2);
 $pw->add($dirTree->tree, -weight  =>2);
-#$pw->add($labx2, -weight  =>2);
+$pw->add($labx2, -weight  =>2);
 $pw->g_pack(-fill => "both", -expand => "yes");
 $button->g_pack( -expand => "no");
 
