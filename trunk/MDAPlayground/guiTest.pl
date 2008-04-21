@@ -16,7 +16,7 @@ binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
 
 my $conf = q(
-        log4perl.logger                    = INFO, ScreenApp
+        log4perl.logger                    = DEBUG, ScreenApp
         log4perl.appender.FileApp          = Log::Log4perl::Appender::File
         log4perl.appender.FileApp.filename = test.log
         log4perl.appender.FileApp.layout   = PatternLayout
