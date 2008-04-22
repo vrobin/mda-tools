@@ -12,12 +12,13 @@ use Data::Dumper;
 use File::Spec;
 #use File::Util;
 use Log::Log4perl qw(:easy);
-use Win32API::File;
+
 
 my $mediaExtensions = [ '.cue', '.ape', '.wav', '.flac', '.mp3', '.wv', 'aiff'];
 my $windows = 0;
 if ($^O =~ /^m?s?win/i) {
 	$windows = 1;
+	use Win32API::File; 
 }
 
 
@@ -54,9 +55,17 @@ sub init {
 	$tree->configure(-treecolumn => 'folderTag');
 	my $column2 = $tree->column("create", -text=>"âàèé");
 	
+	# Declare the different state of an item in the treectrl
+	# first the different known folders type
 	$tree->state("define", "hasSubFolders");
 	$tree->state("define", "hasMediaFile");
 	$tree->state("define", "hasMdaXmlFile");
+	# specific states for "drives" in windows
+	$tree->state("define", "isFixedDrive");
+	$tree->state("define", "isRemovableDrive");
+	$tree->state("define", "isNetworkDrive");
+	$tree->state("define", "isCDROM");
+	$tree->state("define", "isOther"); # other can be no root, unknown or ramdisk
 
     $tree->element("create", "elemImg", "image",  -image => [
 	$mdaAwarePicto, ["hasMdaXmlFile"],
@@ -184,8 +193,10 @@ sub _addFolder {
 	my $parentItem = shift;
 	my $folderPath = shift;
 	my $tree=$self->tree();
-	#$folderPath="\\";
+#	$folderPath='c:\\toto\\tutu';
 
+	# Normalize folderpath, so / and \ are both considered as root
+	$folderPath=File::Spec->canonpath( $folderPath ) ;
 	unless(defined $parentItem){
 		ERROR("Missing input parameter: parent item");
 		die;
@@ -201,10 +212,6 @@ sub _addFolder {
 		#die;		
 	}
 
-# TODO: handle windows drive roots (floppy, hard drive, removable, disk, network)
-
-	my $dirFD;
-	opendir($dirFD, $folderPath) || ( ERROR("Cannot open directory") and return);
 
 #	my $item=$tree->item("create", -button => 'yes');
 #	$tree->item("state", "set", $item, "hasMediaFile");
@@ -212,44 +219,108 @@ sub _addFolder {
 	# We have a real folder in parameter, so create the corresponding item
 	my $item=$tree->item("create");
 	# The text of the item is the name of the folder we're adding (or else, it could be a drive or a root)
-	my $itemText = ( (File::Spec->splitdir( $folderPath ))[-1]);
-	if ($itemText =~ /^$/) {
-		$itemText = ( (File::Spec->splitdir( $folderPath ))[-2]);
-	}
+#	my $itemText = ( (File::Spec->splitdir( $folderPath ))[-1]);
+#	if ($itemText =~ /^$/) {
+#		$itemText = ( (File::Spec->splitdir( $folderPath ))[-2]);
+#	}
 
+# TODO: handle windows drive roots (floppy, hard drive, removable, disk, network)
+	# Detect drive and dirs
+	my ($drive, $dirs, $file) = File::Spec->splitpath( $folderPath, 1 );
 
-	# Examine each entry in this folder to know how to display it
-	foreach my $fileInDir (File::Spec->no_upwards(readdir($dirFD))) {
-		my $fileInDirFullPath=File::Spec->catfile($folderPath, $fileInDir);
+#	if( length($drive) ) { print Dumper($drive).  "drive $drive found\n"}
+#	if( length($dirs) ) { print length($dirs)." dirs $dirs found\n"}
+#	if( length($file) ) { print "file $file found\n"}
 
-		# items has subFolders, so make it expandable
-		if(-d $fileInDirFullPath) {
-			$tree->item("configure", $item, -button => 'yes');
-			$tree->item("collapse", $item);
-			$tree->item("state", "set", $item, "hasSubFolders");
-			DEBUG ("Found directory '$fileInDirFullPath'\n");
-#			$self->_createFolderItem;
-		}elsif(-f $fileInDirFullPath) {
-			print("File: ");
-			DEBUG ("Found file '$fileInDirFullPath'\n");
-# TODO: escape dot in extension check (media extension .mp3 is used with dot unescaped)
-			foreach my $mediaExtension ( @$mediaExtensions ) {
-				print("trying extension $mediaExtension\n");
-				if($fileInDir =~ /^.*${mediaExtension}$/) {
-					DEBUG("$folderPath contain $fileInDir media file");
-					$tree->item("state", "set", $item, "hasMediaFile");
-				}
-				elsif($fileInDir =~ /^\.?mda.xml$/) {
-					DEBUG("$folderPath contain '$fileInDir' MDA XML file");
-					$tree->item("state", "set", $item, "hasMdaXmlFile");
-				}
-			}
+	# prepare a test for "root directory guessing"
+	my $itemText;
+	my $rootDir = File::Spec->rootdir;
+	$rootDir =~ s/([\\(){}[\]\^\$*+?.|])/\\$1/g;
+	
+#	if( $dirs =~ m/^${rootDir}$/) { print "dir  $dirs is a root\n"}
+#	die;
+
+	# The path is the path of a windows system drive root
+	if($windows and length($drive) and ($dirs =~ m/^${rootDir}$/) ) {
+		# define the drive type and associate the item with this state
+		my $driveType = Win32API::File::GetDriveType( $folderPath );
+		$tree->item("configure", $item, -button => 'yes');
+		$tree->item("collapse", $item);
+		$tree->item("state", "set", $item, "hasSubFolders");
+		if($driveType==Win32API::File::DRIVE_FIXED){
+			$tree->item("state", "set", $item, "isFixedDrive");
+			DEBUG ("Found fixed drive '$drive'\n");
+		}elsif($driveType==Win32API::File::DRIVE_REMOTE) {
+			$tree->item("state", "set", $item, "isNetworkDrive");
+			DEBUG ("Found network drive '$drive'\n");
+		}elsif($driveType==Win32API::File::DRIVE_REMOVABLE) {
+			$tree->item("state", "set", $item, "isRemovableDrive");
+			DEBUG ("Found removable drive '$drive'\n");
+		}elsif($driveType==Win32API::File::DRIVE_CDROM) {
+			$tree->item("state", "set", $item, "isCDROM");
+			DEBUG ("Found cdrom drive '$drive'\n");
+		}elsif($driveType==Win32API::File::DRIVE_NO_ROOT_DIR) {
+			$tree->item("state", "set", $item, "isOther");
+			DEBUG ("Found no rooted drive '$drive'\n");
+		}elsif($driveType==Win32API::File::DRIVE_RAMDISK) {
+			$tree->item("state", "set", $item, "isOther");
+			DEBUG ("Found ramdisk drive '$drive'\n");
+		}elsif($driveType==Win32API::File::DRIVE_UNKNOWN) {
+			$tree->item("state", "set", $item, "isOther");
+			DEBUG ("Found unknown drive '$drive'\n");
 		}else {
-			WARN ("Directory entry '$fileInDirFullPath' isn't a directory nor a normal file\n");
+			ERROR("Unknown drive type '$drive'");
+			die;
+		}
+
+		my $osFsType = "\0"x256;
+		my $osVolName = "\0"x256;
+		my $ouFsFlags = 0;
+		Win32API::File::GetVolumeInformation($folderPath, $osVolName, 256, [], [], $ouFsFlags, $osFsType, 256 );
+		$itemText = "$osVolName ($drive)";
+	} else { # this is not a windows drive, but a normal directory
+		$itemText=(File::Spec->splitdir( $folderPath ))[-1];
+		
+		my $dirFD;
+		opendir($dirFD, $folderPath) || ( ERROR("Cannot open directory") and return);
+	
+		# Examine each entry in this folder to know how to display it
+		foreach my $fileInDir (File::Spec->no_upwards(readdir($dirFD))) {
+			my $fileInDirFullPath=File::Spec->catfile($folderPath, $fileInDir);
+	
+			# items has subFolders, so make it expandable
+			if(-d $fileInDirFullPath) {
+				$tree->item("configure", $item, -button => 'yes');
+				$tree->item("collapse", $item);
+				$tree->item("state", "set", $item, "hasSubFolders");
+				DEBUG ("Found directory '$fileInDirFullPath'\n");
+	#			$self->_createFolderItem;
+			}elsif(-f $fileInDirFullPath) {
+				print("File: ");
+				DEBUG ("Found file '$fileInDirFullPath'\n");
+	
+				foreach my $mediaExtension ( @$mediaExtensions ) {
+					$mediaExtension =~ s/([\\(){}[\]\^\$*+?.|])/\\$1/g;
+					print("trying extension $mediaExtension\n");
+					if($fileInDir =~ m/^.*${mediaExtension}$/i) {
+						DEBUG("$folderPath contain $fileInDir media file");
+						$tree->item("state", "set", $item, "hasMediaFile");
+					}
+					elsif($fileInDir =~ /^\.?mda.xml$/) {
+						DEBUG("$folderPath contain '$fileInDir' MDA XML file");
+						$tree->item("state", "set", $item, "hasMdaXmlFile");
+					}
+				}
+			}else {
+				WARN ("Directory entry '$fileInDirFullPath' isn't a directory nor a normal file\n");
+			}
 		}
 	}
 	$tree->item("text", $item, "folderTag", $itemText );
 	$tree->item("lastchild", $parentItem, $item);
+print("XXXXXXXXXXXXXXXXXXX\n");
+}
+
 #	my $iter = File::Next::dirs( { file_filter => sub { print "File: ".$_."\n"; return 1; }, descend_filter => sub{print "Dir: ".$_."\n"; return 0} }, $folderPath );
 #    while ( defined ( my $file = $iter->() ) ) {
 #        # do something...
@@ -259,24 +330,20 @@ sub _addFolder {
 #foreach my $entry ($f->list_dir( $folderPath,'--no-fsdots' )) {
 #	print("$entry  \n");
 #}	
-print("XXXXXXXXXXXXXXXXXXX\n");
 # Check the folder properties: 
 # does it contains other folders
-
 # does it contains music files
 # does it contains .mda.xml
-
 # if folder contains other folders, add a button
-
 # if folder contains .mda.xml, use appli icon
-
 # if folder contains music, use music icon
-	
 #		my $item=$tree->item("create", -button => 'yes');
 #		$tree->item("collapse", $item);
 #		$tree->item("lastchild", $treeRoot, $item);
 #		$tree->item("text", $item, "folderTag", "$root" );
-}
+
+
+
 # Add parentWindow to object and create the tree associated with it
 sub parentWindow {
 	my $self = shift;
