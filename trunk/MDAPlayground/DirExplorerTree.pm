@@ -1,14 +1,24 @@
 #!/usr/bin/perl -w
+#   $URL$
+#   $Rev$
+#   $Rev$
+#   $Author$
+#   $Date$
+#   $Id$
 
-#package MDA::GUI::DirExplorerTree;
 package DirExplorerTree;
+#package MDA::GUI::DirExplorerTree;
 
 use strict;
-use utf8;
+use warnings;
+use version; our $VERSION = qw('0.0.1);
 
+use Carp;
+use English;
+use utf8;
 use Data::Dumper;
-#use File::Find;
-#use File::Next;
+use File::Find;
+use File::Next;
 use File::Spec;
 #use File::Util;
 use Log::Log4perl qw(:easy);
@@ -16,7 +26,7 @@ use Log::Log4perl qw(:easy);
 
 my $mediaExtensions = [ '.cue', '.ape', '.wav', '.flac', '.mp3', '.wv', 'aiff'];
 my $windows = 0;
-if ($^O =~ /^m?s?win/i) {
+if ($OSNAME =~ /^m?s?win/xmi) {
 	$windows = 1;
 	use Win32API::File; 
 }
@@ -35,6 +45,7 @@ sub new {
 # Initialize the tree
 sub init {
 	my $self = shift;
+	$self->tree($self->parentWindow()->new_treectrl());
 	# use local $tree variable to prevent multiple tree getter calls
 	my $tree=$self->tree();
 
@@ -44,7 +55,7 @@ sub init {
 					-showbuttons => 'yes',
 					-showlines => 'yes',
 					-xscrollincrement => 20);
-					
+#my %pictos = 					
 	my $folderPicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/folder.png");
 	my $myComputerPicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/computer.png");
 	my $homePicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/house.png");
@@ -54,7 +65,7 @@ sub init {
 	my $column = $tree->column("create", -text=>"taper sur", -image => $folderPicto, -tags =>"folderTag");
 	$tree->configure(-treecolumn => 'folderTag');
 	my $column2 = $tree->column("create", -text=>"âàèé");
-	
+	print
 	# Declare the different state of an item in the treectrl
 	# first the different known folders type
 	$tree->state("define", "hasSubFolders");
@@ -105,7 +116,7 @@ sub init {
 	if($windows) {
 		@roots = Win32API::File::getLogicalDrives();
 	}else {
-		push @roots, "/";
+		push @roots, q{/};
 	}
 	$tree->item("configure", $treeRoot, -button => 'yes');
 	$tree->item("style", "set", $treeRoot, $column, $styleMyComputerFolder);
@@ -173,6 +184,7 @@ sub init {
 #	$tree->item("text", $itemfils, "folder", "Allo?" );
 #	$tree->item("text", $itemfils2, "folder", "A l'huile!" );
 #	print $tree->item("create", -count => 5);	
+	return;
 }
 
 # create a folder item (for tktreectrl) from the full dirname
@@ -181,9 +193,9 @@ sub init {
 sub _createFolderItem {
 	my $self = shift;
 	my $parentItem = shift;
-	unless(defined $parentItem){
+	if(not defined $parentItem){
 		ERROR("Missing input parameter: directory name");
-		die;
+		croak;
 	}
 	
 }
@@ -197,17 +209,17 @@ sub _addFolder {
 
 	# Normalize folderpath, so / and \ are both considered as root
 	$folderPath=File::Spec->canonpath( $folderPath ) ;
-	unless(defined $parentItem){
+	if (not defined $parentItem){
 		ERROR("Missing input parameter: parent item");
-		die;
+		croak;
 	}
 
-	unless(defined $folderPath){
+	if (not defined $folderPath){
 		ERROR("Missing input parameter: folder path");
-		die;
+		croak;
 	}
 
-	unless (-d $folderPath) {
+	if (not -d $folderPath) {
 		WARN("Parameter '$folderPath' isn't a folder");
 		#die;		
 	}
@@ -229,49 +241,44 @@ sub _addFolder {
 	my ($drive, $dirs, $file) = File::Spec->splitpath( $folderPath, 1 );
 
 #	if( length($drive) ) { print Dumper($drive).  "drive $drive found\n"}
-#	if( length($dirs) ) { print length($dirs)." dirs $dirs found\n"}
+#	if( length($dirs) ) { print length($didrs)." dirs $dirs found\n"}
 #	if( length($file) ) { print "file $file found\n"}
 
 	# prepare a test for "root directory guessing"
 	my $itemText;
 	my $rootDir = File::Spec->rootdir;
-	$rootDir =~ s/([\\(){}[\]\^\$*+?.|])/\\$1/g;
-	
+	print("YYYYYYYYYYYY $rootDir xxxxxxxxxx\n");
+	#$rootDir =~ s/([\\(){}[\]\^\$*+?.|])/\\$1/g;
+	$rootDir =~ s{ ( [\\(){}[\]\^\$*+?.|] ) }{\\$1}xg;
+
+	print("XXXXXXXXXXX $rootDir xxxxxxxxxx\n");
 #	if( $dirs =~ m/^${rootDir}$/) { print "dir  $dirs is a root\n"}
 #	die;
 
+my %driveTypeStylename = (
+	    Win32API::File::DRIVE_UNKNOWN => "isOther",
+	Win32API::File::DRIVE_NO_ROOT_DIR => "isOther",
+	  Win32API::File::DRIVE_REMOVABLE => "isRemovableDrive",
+          Win32API::File::DRIVE_FIXED => "isFixedDrive",
+         Win32API::File::DRIVE_REMOTE => "isNetworkDrive",
+	      Win32API::File::DRIVE_CDROM => "isCDROM",
+        Win32API::File::DRIVE_RAMDISK => "isOther"
+);
 	# The path is the path of a windows system drive root
-	if($windows and length($drive) and ($dirs =~ m/^${rootDir}$/) ) {
+#	if($windows and length($drive) and ($dirs =~ m/^${rootDir}$/) ) {
+	if($windows and length($drive) and ($dirs =~ m{^ $rootDir $}x) ) {
 		# define the drive type and associate the item with this state
 		my $driveType = Win32API::File::GetDriveType( $folderPath );
 		$tree->item("configure", $item, -button => 'yes');
 		$tree->item("collapse", $item);
 		$tree->item("state", "set", $item, "hasSubFolders");
-		if($driveType==Win32API::File::DRIVE_FIXED){
-			$tree->item("state", "set", $item, "isFixedDrive");
-			DEBUG ("Found fixed drive '$drive'\n");
-		}elsif($driveType==Win32API::File::DRIVE_REMOTE) {
-			$tree->item("state", "set", $item, "isNetworkDrive");
-			DEBUG ("Found network drive '$drive'\n");
-		}elsif($driveType==Win32API::File::DRIVE_REMOVABLE) {
-			$tree->item("state", "set", $item, "isRemovableDrive");
-			DEBUG ("Found removable drive '$drive'\n");
-		}elsif($driveType==Win32API::File::DRIVE_CDROM) {
-			$tree->item("state", "set", $item, "isCDROM");
-			DEBUG ("Found cdrom drive '$drive'\n");
-		}elsif($driveType==Win32API::File::DRIVE_NO_ROOT_DIR) {
-			$tree->item("state", "set", $item, "isOther");
-			DEBUG ("Found no rooted drive '$drive'\n");
-		}elsif($driveType==Win32API::File::DRIVE_RAMDISK) {
-			$tree->item("state", "set", $item, "isOther");
-			DEBUG ("Found ramdisk drive '$drive'\n");
-		}elsif($driveType==Win32API::File::DRIVE_UNKNOWN) {
-			$tree->item("state", "set", $item, "isOther");
-			DEBUG ("Found unknown drive '$drive'\n");
-		}else {
-			ERROR("Unknown drive type '$drive'");
-			die;
+
+		# find preconfigured driveStyle string in hash with drive type returned by win32API
+		my $driveStyle=$driveTypeStylename{$driveType};
+		if(not $driveStyle) {
+			croak("Unknown drive type '$drive' (type found: $driveType) \n")
 		}
+		$tree->item("state", "set", $item, "isFixedDrive");
 
 		my $osFsType = "\0"x256;
 		my $osVolName = "\0"x256;
@@ -319,6 +326,7 @@ sub _addFolder {
 	$tree->item("text", $item, "folderTag", $itemText );
 	$tree->item("lastchild", $parentItem, $item);
 print("XXXXXXXXXXXXXXXXXXX\n");
+	return;
 }
 
 #	my $iter = File::Next::dirs( { file_filter => sub { print "File: ".$_."\n"; return 1; }, descend_filter => sub{print "Dir: ".$_."\n"; return 0} }, $folderPath );
@@ -349,19 +357,22 @@ sub parentWindow {
 	my $self = shift;
 	my $parentWindow = shift;
 	
-	if ($parentWindow) {
+	if (defined $parentWindow) {
 		if(defined($self->{parentWindow})) {
 			ERROR("ParentWindow already set, there's no need to reassociate it again (yet).");
 			return $self->{parentWindow};
 		}
 		$self->{parentWindow} =  $parentWindow;
-		$self->{tree} = $parentWindow->new_treectrl();
 	}
 	return $self->{parentWindow};
 }
 
 sub tree {
 	my $self = shift;
+	my $tree = shift;
+	if (defined $tree) {
+		$self->{tree} =  $tree;
+	}
 	return $self->{tree};
 }
 

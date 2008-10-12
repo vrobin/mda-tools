@@ -1,10 +1,19 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -w
+#   $URL$
+#   $Rev$
+#   $Rev$
+#   $Author$
+#   $Date$
+#   $Id$
 
 use strict;
+use warnings;
+use version; our $VERSION = qw('0.0.1);
 use Tkx;
 #use Tk::DirSelect;
 use Log::Log4perl qw(:easy);
 use DirExplorerTree;
+
 
 Tkx::package("require", "treectrl");
 Tkx::package("require", "tile");
@@ -44,7 +53,13 @@ Log::Log4perl->init( \$conf );
 
 # Print the list of available themes: 
 # xpnative clam alt classic default winnative
-print Tkx::ttk__themes()."\n";
+#print Tkx::ttk__themes()."\n";
+#print Tkx::i::call("ttk::themes")."\n";
+#print Tkx::i::call("ttk::style", "theme", "names")."\n";
+#print Tkx::ttk__style_theme_names()."\n";
+#print Tkx::ttk__style("theme", "names")."\n";
+#print Tkx::ttk__style_theme("names")."\n";
+print Tkx::i::call("ttk::style", ("theme", "names"))."\n";
 
 #print join "\n", (Tkx::SplitList(Tkx::set('auto_path'))), "\n"; 
 #my $i = Tcl->new; 
@@ -52,9 +67,15 @@ print Tkx::ttk__themes()."\n";
 #print $i->call('info','patchlevel') ."\n";
 
 # Create main window
-my $mw = Tkx::widget->new(".");
-$mw->configure(-menu => mk_menu($mw));
-Tkx::wm("title", $mw, "test");
+my $mw = Tkx::widget->new(q{.});
+$mw->m_configure(-menu => mk_menu($mw));
+
+# invoke "wm title" method with "$mw" widget, wm is WindowManager interface of tcl
+# see http://www.tcl.tk/man/tcl8.5/TkCmd/wm.htm#M49
+$mw->g_wm_title("MDA Gui");
+# This is the same as
+#Tkx::wm("title", $mw, "test");
+#Tkx::wm_title( $mw, "test");
 
 # Create PanedWindow (tree on the left, content on the right part)
 my $pw = $mw->new_ttk__panedwindow(
