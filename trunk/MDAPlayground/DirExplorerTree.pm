@@ -55,44 +55,70 @@ sub init {
 					-showbuttons => 'yes',
 					-showlines => 'yes',
 					-xscrollincrement => 20);
-#my %pictos = 					
-	my $folderPicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/folder.png");
-	my $myComputerPicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/computer.png");
-	my $homePicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/house.png");
-	my $musicPicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/music.png");
-	my $mdaAwarePicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/folder_star.png");
+
+##############################################################################
+### Creation of pictos
+
+	# object contains for each type of picto, the path of the picto
+	my %pictos = (
+	      folderPicto => { path => "graphics/folder.png" },
+	       drivePicto => { path => "graphics/drive.png" },
+	     cdDrivePicto => { path => "graphics/drive_cd.png" },
+	  myComputerPicto => { path => "graphics/computer.png" },
+	        homePicto => { path => "graphics/house.png" },
+	       musicPicto => { path => "graphics/music.png" },
+	    mdaAwarePicto => { path => "graphics/folder_star.png" }
+	);
 	
-	my $column = $tree->column("create", -text=>"taper sur", -image => $folderPicto, -tags =>"folderTag");
-	$tree->configure(-treecolumn => 'folderTag');
-	my $column2 = $tree->column("create", -text=>"âàèé");
-	print
+	# for each of these picto, create a tkImage reference and store it in %pictos hash
+	foreach my $picto(keys %pictos) {
+#		print("$picto", "=> ", $pictos{$picto}{path},"\n");
+		$pictos{$picto}{tkImage} = Tkx::image("create", "photo", -format => "png", -file => $pictos{$picto}{path});
+	}
+
+# Old Code
+#	my $folderPicto=Tkx::image("create", "photo", -format => "png", -file => );
+#	my $myComputerPicto=Tkx::image("create", "photo", -format => "png", -file => "graphics/computer.png");
+#	my $homePicto=Tkx::image("create", "photo", -format => "png", -file => );
+#	my $musicPicto=Tkx::image("create", "photo", -format => "png", -file => );
+#	my $mdaAwarePicto=Tkx::image("create", "photo", -format => "png", -file => );
+
+
+##############################################################################
+### Creation of states
+	
 	# Declare the different state of an item in the treectrl
 	# first the different known folders type
-	$tree->state("define", "hasSubFolders");
-	$tree->state("define", "hasMediaFile");
-	$tree->state("define", "hasMdaXmlFile");
-	# specific states for "drives" in windows
-	$tree->state("define", "isFixedDrive");
-	$tree->state("define", "isRemovableDrive");
-	$tree->state("define", "isNetworkDrive");
-	$tree->state("define", "isCDROM");
-	$tree->state("define", "isOther"); # other can be no root, unknown or ramdisk
+    my @folderStates = ("hasSubFolders", "hasMediaFile", "hasMdaXmlFile", "isRootFolder",
+                        "isFixedDrive", "isRemovableDrive", "isNetworkDrive", "isCDROM", "isOther");
+	foreach my $folderState (@folderStates) {
+		print $folderState, "\n";
+		$tree->state("define", $folderState);
+	}
+
+##############################################################################
+### Creation of elements
 
     $tree->element("create", "elemImg", "image",  -image => [
-	$mdaAwarePicto, ["hasMdaXmlFile"],
-	$musicPicto,  ["hasMediaFile", "!hasMdaXmlFile"],
-	$folderPicto, []
+	$pictos{myComputerPicto}{tkImage}, ["isRootFolder"],
+	$pictos{mdaAwarePicto}{tkImage}, ["hasMdaXmlFile"],
+	$pictos{musicPicto}{tkImage},  ["hasMediaFile", "!hasMdaXmlFile"],
+	$pictos{drivePicto}{tkImage}, ["isFixedDrive"],
+	$pictos{folderPicto}{tkImage}, []
 	]
 	);
     
-	$tree->element("create", "myComputerFolderImage", "image", -image => $myComputerPicto);
-	$tree->element("create", "classicFolderImage", "image", -image => $folderPicto);
+	$tree->element("create", "myComputerFolderImage", "image", -image => $pictos{myComputerPicto}{tkImage});
+	$tree->element("create", "classicFolderImage", "image", -image => $pictos{folderPicto}{tkImage});
 	$tree->element("create", "folderTxt", "text");
 	
+##############################################################################
+### Creation of styles
+
 	my $styleFolder=$tree->style("create", "sf");
 	my $styleClassicFolder=$tree->style("create", "scf");
 	my $styleMyComputerFolder = $tree->style("create", "srf");
-	
+
 	
 	#my $style2=$tree->style("create", "s2");
 	$tree->style('elements', $styleFolder, 'elemImg folderTxt');
@@ -106,8 +132,14 @@ sub init {
 	$tree->style("layout", $styleMyComputerFolder,  "myComputerFolderImage", -expand=>'ns');
 	$tree->style("layout", $styleMyComputerFolder,  "folderTxt", -padx => '2 6', -squeeze=>'x', -expand=>'ns');
 
-	
+##############################################################################
+### Creation of columns
+
+	my $column = $tree->column("create", -text=>"taper sur", -image => $pictos{folderPicto}{tkImage}, -tags =>"folderTag");
+	$tree->configure(-treecolumn => 'folderTag');
+	my $column2 = $tree->column("create", -text=>"âàèé");
 	$tree->column('configure', 'folderTag', -itemstyle => 'sf');
+	
 	
 	my $treeRoot = $tree->item("id", "root");
 	print "XXX: ".$treeRoot."\n";
@@ -119,8 +151,12 @@ sub init {
 		push @roots, q{/};
 	}
 	$tree->item("configure", $treeRoot, -button => 'yes');
-	$tree->item("style", "set", $treeRoot, $column, $styleMyComputerFolder);
+	$tree->item("style", "set", $treeRoot, $column, $styleFolder);
 	$tree->item("text", $treeRoot, "folderTag", "My Computer" );
+	$tree->item("state", "set", $treeRoot, "isRootFolder" );
+	$tree->item("tag", "add", $treeRoot, "isRootFolder" );
+	
+
 	foreach my $root (@roots) {
 		
 		$self->_addFolder($treeRoot, $root);
@@ -280,8 +316,8 @@ my %driveTypeStylename = (
 		}
 		$tree->item("state", "set", $item, "isFixedDrive");
 
-		my $osFsType = "\0"x256;
-		my $osVolName = "\0"x256;
+		my $osFsType = "\0" x 256;
+		my $osVolName = "\0" x 256;
 		my $ouFsFlags = 0;
 		Win32API::File::GetVolumeInformation($folderPath, $osVolName, 256, [], [], $ouFsFlags, $osFsType, 256 );
 		$itemText = "$osVolName ($drive)";
