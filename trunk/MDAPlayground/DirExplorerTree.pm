@@ -90,7 +90,7 @@ sub init {
         "isFixedDrive", 
         "isRemovableDrive", 
         "isNetworkDrive", 
-        "isCDROM", 
+        "isCDROM",
         "isOther"
     );
         
@@ -112,10 +112,16 @@ sub init {
 	]
 	);
     
-	$tree->element("create", "myComputerFolderImage", "image", -image => $pictos{myComputerPicto}{tkImage});
-	$tree->element("create", "classicFolderImage", "image", -image => $pictos{folderPicto}{tkImage});
+#	$tree->element("create", "myComputerFolderImage", "image", -image => $pictos{myComputerPicto}{tkImage});
+#	$tree->element("create", "classicFolderImage", "image", -image => $pictos{folderPicto}{tkImage});
 	$tree->element("create", "folderTxt", "text");
-	
+
+#   $T element create sel.e rect -fill [list $::SystemHighlight {selected focus} gray {selected !focus}] -open e -showfocus yes
+	$tree->element("create", "sel.e", "rect", 
+	-fill => ['SystemHighlight', ['selected', 'focus'], 'gray', ['selected', '!focus']],
+	-open =>"e",
+	-showfocus => "yes"
+	);
 ##############################################################################
 ### Creation of styles
 
@@ -125,16 +131,21 @@ sub init {
 
 	
 	#my $style2=$tree->style("create", "s2");
-	$tree->style('elements', $styleFolder, 'elemImg folderTxt');
-	$tree->style('elements', $styleClassicFolder, 'classicFolderImage folderTxt');
-	$tree->style('elements', $styleMyComputerFolder, 'myComputerFolderImage folderTxt');
-	#$tree->style('elements', $style2, 'folderImg folderTxt');
+	$tree->style('elements', "folderStyle", 'elemImg sel.e folderTxt');
 	
-	$tree->style("layout", $styleClassicFolder,  "classicFolderImage", -expand=>'ns');
-	$tree->style("layout", $styleClassicFolder,  "folderTxt", -padx => '2 6', -squeeze=>'x', -expand=>'ns');
+#	$tree->style('elements', $styleClassicFolder, 'classicFolderImage folderTxt');
+#	$tree->style('elements', $styleMyComputerFolder, 'myComputerFolderImage folderTxt');
+	#$tree->style('elements', $style2, 'folderImg folderTxt');
 
-	$tree->style("layout", $styleMyComputerFolder,  "myComputerFolderImage", -expand=>'ns');
-	$tree->style("layout", $styleMyComputerFolder,  "folderTxt", -padx => '2 6', -squeeze=>'x', -expand=>'ns');
+	$tree->style("layout", "folderStyle",  "elemImg", -expand=>'ns',  -padx => '0 0');
+	$tree->style("layout", "folderStyle",  "folderTxt", -padx => '2 6', -squeeze=>'x', -expand=>'ns');
+	$tree->style("layout", "folderStyle",  "sel.e", -ipadx => '0 0', -union => ['folderTxt']);
+	
+#	$tree->style("layout", $styleClassicFolder,  "classicFolderImage", -expand=>'ns');
+#	$tree->style("layout", $styleClassicFolder,  "folderTxt", -padx => '2 6', -squeeze=>'x', -expand=>'ns');
+#
+#	$tree->style("layout", $styleMyComputerFolder,  "myComputerFolderImage", -expand=>'ns');
+#	$tree->style("layout", $styleMyComputerFolder,  "folderTxt", -padx => '2 6', -squeeze=>'x', -expand=>'ns');
 
 ##############################################################################
 ### Creation of columns
@@ -151,27 +162,30 @@ sub init {
 
 	$self->_initTreeStructure();
 
-	$tree->notify("bind", $tree, "<Expand-before>", [
+	$tree->m_notify("bind", $tree, "<Expand-before>", [
        sub {
        	   my $t = shift;
            my $i = shift;
+           my $event = shift;
+           my $detail = shift;
 #           my $item=$tree->item("create", -button => 'yes');
 #				#$tree->item("collapse", $item);
 #				$tree->item("text", $item, "folderTag", "TEST" );           
 #				$tree->item("lastchild", $i, $item);
 #				$tree->item("collapse", $item);
-          # print "Clicked at $i\n";
-          #Tkx::update("idletasks");
+          print "Clicked at $i - $t - e: $event - d: $detail\n";
+#          Tkx::update("idletasks");
+#          Tkx::update();
           return $i;
-       },    Tkx::Ev("%T", "%I")]);
+       },    Tkx::Ev("%T", "%I", "%e", "%d")]);
 	$tree->notify("bind", $tree, "<Expand-after>", [
        sub {
        	my $t = shift;
        	my $i = shift;
        	$tree->item("configure", $i, -button => 'yes');
-          #Tkx::update();
+          Tkx::update();
        },    Tkx::Ev("%T", "%I")]);   
-	$tree->notify("bind", $tree, "<Collapse-after>", [
+	$tree->m_notify("bind", $tree, "<Collapse-after>", [
        sub {
        	my $t = shift;
        	my $i = shift;
@@ -200,9 +214,10 @@ sub _initTreeStructure {
 	}
 	$tree->item("configure", $treeRoot, -button => 'yes');
 #	$tree->item("style", "set", $treeRoot, $column, $styleFolder);
+
+	# it seems that as Root item exist from the begining, its style must be set
+	# as column -itemstyle doesn't apply to root item
 	$tree->item("style", "set", $treeRoot, "tag folderColumn", "folderStyle");
-#	$tree->item("style", "set", $treeRoot, "folderColumn");
-	$tree->item("tag", "add", $treeRoot, "folderColumn" );
 	$tree->item("text", $treeRoot, "folderColumn", "My Computer" );
 	$tree->item("state", "set", $treeRoot, "isRootFolder" );
 	$tree->item("tag", "add", $treeRoot, "isRootFolder" );
@@ -317,6 +332,7 @@ sub _addFolder {
 #	if( $dirs =~ m/^${rootDir}$/) { print "dir  $dirs is a root\n"}
 #	die;
 
+# TODO: replace Stylename with StateTag which is more exact
 my %driveTypeStylename = (
 	    Win32API::File::DRIVE_UNKNOWN => "isOther",
 	Win32API::File::DRIVE_NO_ROOT_DIR => "isOther",
