@@ -24,7 +24,9 @@ use File::Spec;
 use Log::Log4perl qw(:easy);
 
 
-my $mediaExtensions = [ '.cue', '.ape', '.wav', '.flac', '.mp3', '.wv', 'aiff'];
+my @mediaExtensions = ('ape', 'wav', 'flac', 'mp3', 'wv', 'aiff');
+my @folderItems;
+
 my $windows = 0;
 if ($OSNAME =~ /^m?s?win/xmi) {
 	$windows = 1;
@@ -86,7 +88,7 @@ sub init {
     	"hasSubFolders", 
     	"hasMediaFile", 
     	"hasMdaXmlFile", 
-    	"isRootFolder",
+    	"isTkTreeRoot",
         "isFixedDrive", 
         "isRemovableDrive", 
         "isNetworkDrive", 
@@ -103,7 +105,7 @@ sub init {
 ### Creation of elements
 
     $tree->element("create", "elemImg", "image",  -image => [
-	$pictos{myComputerPicto}{tkImage}, ["isRootFolder"],
+	$pictos{myComputerPicto}{tkImage}, ["isTkTreeRoot"],
 	$pictos{mdaAwarePicto}{tkImage}, ["hasMdaXmlFile"],
 	$pictos{musicPicto}{tkImage},  ["hasMediaFile", "!hasMdaXmlFile"],
 	$pictos{cdDrivePicto}{tkImage}, ["isCDROM"],
@@ -114,11 +116,14 @@ sub init {
     
 #	$tree->element("create", "myComputerFolderImage", "image", -image => $pictos{myComputerPicto}{tkImage});
 #	$tree->element("create", "classicFolderImage", "image", -image => $pictos{folderPicto}{tkImage});
-	$tree->element("create", "folderTxt", "text");
+	$tree->element("create", "folderTxt", "text",
+	-fill => ['SystemHighlightText', 'selected focus'],);
 
 #   $T element create sel.e rect -fill [list $::SystemHighlight {selected focus} gray {selected !focus}] -open e -showfocus yes
 	$tree->element("create", "sel.e", "rect", 
-	-fill => ['SystemHighlight', ['selected', 'focus'], 'gray', ['selected', '!focus']],
+	-fill => ['SystemHighlight', 'selected focus', 'gray', 'selected !focus'],	
+# same as:
+#	-fill => ['SystemHighlight', ['selected', 'focus'], 'gray', ['selected', '!focus']],
 	-open =>"e",
 	-showfocus => "yes"
 	);
@@ -139,7 +144,7 @@ sub init {
 
 	$tree->style("layout", "folderStyle",  "elemImg", -expand=>'ns',  -padx => '0 0');
 	$tree->style("layout", "folderStyle",  "folderTxt", -padx => '2 6', -squeeze=>'x', -expand=>'ns');
-	$tree->style("layout", "folderStyle",  "sel.e", -ipadx => '0 0', -union => ['folderTxt']);
+	$tree->style("layout", "folderStyle",  "sel.e", -ipadx => '2', -union => ['folderTxt'], -iexpand => 'ns');
 	
 #	$tree->style("layout", $styleClassicFolder,  "classicFolderImage", -expand=>'ns');
 #	$tree->style("layout", $styleClassicFolder,  "folderTxt", -padx => '2 6', -squeeze=>'x', -expand=>'ns');
@@ -161,7 +166,7 @@ sub init {
 
 
 	$self->_initTreeStructure();
-
+#	_addSubFolders($self, '1');
 	$tree->m_notify("bind", $tree, "<Expand-before>", [
        sub {
        	   my $t = shift;
@@ -173,7 +178,8 @@ sub init {
 #				$tree->item("text", $item, "folderTag", "TEST" );           
 #				$tree->item("lastchild", $i, $item);
 #				$tree->item("collapse", $item);
-          print "Clicked at $i - $t - e: $event - d: $detail\n";
+          print "Clicked at ".Dumper($i)." - $t - e: $event - d: $detail\n";
+          $self->_addSubFolders($i);
 #          Tkx::update("idletasks");
 #          Tkx::update();
           return $i;
@@ -183,7 +189,7 @@ sub init {
        	my $t = shift;
        	my $i = shift;
        	$tree->item("configure", $i, -button => 'yes');
-          Tkx::update();
+#          Tkx::update();
        },    Tkx::Ev("%T", "%I")]);   
 	$tree->m_notify("bind", $tree, "<Collapse-after>", [
        sub {
@@ -219,15 +225,17 @@ sub _initTreeStructure {
 	# as column -itemstyle doesn't apply to root item
 	$tree->item("style", "set", $treeRoot, "tag folderColumn", "folderStyle");
 	$tree->item("text", $treeRoot, "folderColumn", "My Computer" );
-	$tree->item("state", "set", $treeRoot, "isRootFolder" );
-	$tree->item("tag", "add", $treeRoot, "isRootFolder" );
-	
+	$tree->item("state", "set", $treeRoot, "isTkTreeRoot" );
+	$tree->item("tag", "add", $treeRoot, "isTkTreeRoot" );	
 
 	foreach my $root (@roots) {		
 		$self->_addFolder($treeRoot, $root);
 	}
+	print Dumper \@folderItems;
+	return;
 }
 
+sub _junkToFold {
 #		print "$root"."\n";
 #		my $item=$tree->item("create", -button => 'yes');
 #		$tree->item("state", "set", $item, "hasMediaFile");
@@ -262,156 +270,16 @@ sub _initTreeStructure {
 #	my $homePicto=Tkx::image("create", "photo", -format => "png", -file => );
 #	my $musicPicto=Tkx::image("create", "photo", -format => "png", -file => );
 #	my $mdaAwarePicto=Tkx::image("create", "photo", -format => "png", -file => );
-
-
-# create a folder item (for tktreectrl) from the full dirname
-# create it folder or not, and whith the good item tag 
-# (music dir, mda.xml dir or normal dir)
-sub _createFolderItem {
-	my $self = shift;
-	my $parentItem = shift;
-	if(not defined $parentItem){
-		ERROR("Missing input parameter: directory name");
-		croak;
-	}
-	
-}
-
-sub _addFolder {
-	my $self = shift;
-	my $parentItem = shift;
-	my $folderPath = shift;
-	my $tree=$self->tree();
-#	$folderPath='c:\\toto\\tutu';
-
-	# Normalize folderpath, so / and \ are both considered as root
-	$folderPath=File::Spec->canonpath( $folderPath ) ;
-	if (not defined $parentItem){
-		ERROR("Missing input parameter: parent item");
-		croak;
-	}
-
-	if (not defined $folderPath){
-		ERROR("Missing input parameter: folder path");
-		croak;
-	}
-
-	if (not -d $folderPath) {
-		WARN("Parameter '$folderPath' isn't a folder");
-		#die;		
-	}
-
-
 #	my $item=$tree->item("create", -button => 'yes');
 #	$tree->item("state", "set", $item, "hasMediaFile");
 #	$tree->item("lastchild", $parentItem, $item);
 	# We have a real folder in parameter, so create the corresponding item
-	my $item=$tree->item("create");
+	
 	# The text of the item is the name of the folder we're adding (or else, it could be a drive or a root)
 #	my $itemText = ( (File::Spec->splitdir( $folderPath ))[-1]);
 #	if ($itemText =~ /^$/) {
 #		$itemText = ( (File::Spec->splitdir( $folderPath ))[-2]);
 #	}
-
-# TODO: handle windows drive roots (floppy, hard drive, removable, disk, network)
-	# Detect drive and dirs
-	my ($drive, $dirs, $file) = File::Spec->splitpath( $folderPath, 1 );
-
-#	if( length($drive) ) { print Dumper($drive).  "drive $drive found\n"}
-#	if( length($dirs) ) { print length($didrs)." dirs $dirs found\n"}
-#	if( length($file) ) { print "file $file found\n"}
-
-	# prepare a test for "root directory guessing"
-	my $itemText;
-	my $rootDir = File::Spec->rootdir;
-	print("YYYYYYYYYYYY $rootDir xxxxxxxxxx\n");
-	#$rootDir =~ s/([\\(){}[\]\^\$*+?.|])/\\$1/g;
-	$rootDir =~ s{ ( [\\(){}[\]\^\$*+?.|] ) }{\\$1}xg;
-
-	print("XXXXXXXXXXX $rootDir xxxxxxxxxx\n");
-#	if( $dirs =~ m/^${rootDir}$/) { print "dir  $dirs is a root\n"}
-#	die;
-
-# TODO: replace Stylename with StateTag which is more exact
-my %driveTypeStylename = (
-	    Win32API::File::DRIVE_UNKNOWN => "isOther",
-	Win32API::File::DRIVE_NO_ROOT_DIR => "isOther",
-	  Win32API::File::DRIVE_REMOVABLE => "isRemovableDrive",
-          Win32API::File::DRIVE_FIXED => "isFixedDrive",
-         Win32API::File::DRIVE_REMOTE => "isNetworkDrive",
-	      Win32API::File::DRIVE_CDROM => "isCDROM",
-        Win32API::File::DRIVE_RAMDISK => "isOther"
-);
-	# The path is the path of a windows system drive root
-#	if($windows and length($drive) and ($dirs =~ m/^${rootDir}$/) ) {
-	if($windows and length($drive) and ($dirs =~ m{^ $rootDir $}x) ) {
-		# define the drive type and associate the item with this state
-		my $driveType = Win32API::File::GetDriveType( $folderPath );
-		$tree->item("configure", $item, -button => 'yes');
-		$tree->item("collapse", $item);
-		$tree->item("state", "set", $item, "hasSubFolders");
-
-		# find preconfigured driveStyle string in hash with drive type returned by win32API
-		my $driveStyle=$driveTypeStylename{$driveType};
-		if(not $driveStyle) {
-			croak("Unknown drive type '$drive' (type found: $driveType) \n")
-		}
-		$tree->item("state", "set", $item, $driveStyle);
-
-		my $osFsType = "\0" x 256;
-		my $osVolName = "\0" x 256;
-		my $ouFsFlags = 0;
-		if ( Win32API::File::GetVolumeInformation($folderPath, $osVolName, 256, [], [], $ouFsFlags, $osFsType, 256 ) ) 
-		{
-		$itemText = "$osVolName ($drive)";
-		}
-		else {
-			$itemText = "CD/DVD Drive ($drive)";
-		}
-	} else { # this is not a windows drive, but a normal directory
-		$itemText=(File::Spec->splitdir( $folderPath ))[-1];
-		
-		my $dirFD;
-		opendir($dirFD, $folderPath) || ( ERROR("Cannot open directory") and return);
-	
-		# Examine each entry in this folder to know how to display it
-		foreach my $fileInDir (File::Spec->no_upwards(readdir($dirFD))) {
-			my $fileInDirFullPath=File::Spec->catfile($folderPath, $fileInDir);
-	
-			# items has subFolders, so make it expandable
-			if(-d $fileInDirFullPath) {
-				$tree->item("configure", $item, -button => 'yes');
-				$tree->item("collapse", $item);
-				$tree->item("state", "set", $item, "hasSubFolders");
-				DEBUG ("Found directory '$fileInDirFullPath'\n");
-	#			$self->_createFolderItem;
-			}elsif(-f $fileInDirFullPath) {
-				print("File: ");
-				DEBUG ("Found file '$fileInDirFullPath'\n");
-	
-				foreach my $mediaExtension ( @$mediaExtensions ) {
-					$mediaExtension =~ s/([\\(){}[\]\^\$*+?.|])/\\$1/g;
-					print("trying extension $mediaExtension\n");
-					if($fileInDir =~ m/^.*${mediaExtension}$/i) {
-						DEBUG("$folderPath contain $fileInDir media file");
-						$tree->item("state", "set", $item, "hasMediaFile");
-					}
-					elsif($fileInDir =~ /^\.?mda.xml$/) {
-						DEBUG("$folderPath contain '$fileInDir' MDA XML file");
-						$tree->item("state", "set", $item, "hasMdaXmlFile");
-					}
-				}
-			}else {
-				WARN ("Directory entry '$fileInDirFullPath' isn't a directory nor a normal file\n");
-			}
-		}
-	}
-	$tree->item("text", $item, "folderColumn", $itemText );
-	$tree->item("lastchild", $parentItem, $item);
-print("XXXXXXXXXXXXXXXXXXX\n");
-	return;
-}
-
 #	my $iter = File::Next::dirs( { file_filter => sub { print "File: ".$_."\n"; return 1; }, descend_filter => sub{print "Dir: ".$_."\n"; return 0} }, $folderPath );
 #    while ( defined ( my $file = $iter->() ) ) {
 #        # do something...
@@ -433,7 +301,219 @@ print("XXXXXXXXXXXXXXXXXXX\n");
 #		$tree->item("lastchild", $treeRoot, $item);
 #		$tree->item("text", $item, "folderTag", "$root" );
 
+#	if( length($drive) ) { print Dumper($drive).  "drive $drive found\n"}
+#	if( length($dirs) ) { print length($didrs)." dirs $dirs found\n"}
+#	if( length($file) ) { print "file $file found\n"}
+#	if( $dirs =~ m/^${rootDir}$/) { print "dir  $dirs is a root\n"}
+#	die;
+#	.t configure -itemtagexpr false
+#.t item delete "tag a&&b"
+#	$tree->item("tag",  $item, -tag => ["monpaf" , 'ben oit&&jul,i|e||n&toutseul']);
+#	$tree->item($folderPath);
+}
 
+sub _addSubFolders {
+	my $self = shift;
+	my $parentItem = shift;
+	my $folderPath = $folderItems[$parentItem]{folderPath};
+	my $tree=$self->tree();	
+
+	my $dirFD;
+	opendir($dirFD, $folderPath) || ( ERROR("Cannot open directory") and return $parentItem);
+#croak("XXXXXXXXXX AZE !!!");
+	# Examine each entry in this folder to know how to display it
+	foreach my $fileInDir (File::Spec->no_upwards(readdir($dirFD))) {
+#		print ("xxxx: $fileInDir");
+		my $fileInDirFullPath=File::Spec->catfile($folderPath, $fileInDir);
+#		print("FFFFFF: $fileInDirFullPath");
+		# items has subFolders, so make it expandable
+		if(-d $fileInDirFullPath) {
+			$self->_addFolder($parentItem, $fileInDirFullPath);
+		}
+	}
+}
+
+sub _addFolder {
+	my $self = shift;
+	my $parentItem = shift;
+	my $folderPath = shift;
+	my $tree=$self->tree();
+#	$folderPath='c:\\toto\\tutu';
+
+	# Normalize folderpath, so / and \ are both considered as root
+	$folderPath=File::Spec->canonpath( $folderPath ) ;
+	if (not defined $parentItem){
+		ERROR("Missing input parameter: parent item");
+		croak;
+	}
+
+	if (not defined $folderPath){
+		ERROR("Missing input parameter: folder path");
+		croak;
+	}
+	if (not -d $folderPath) {
+		WARN("Parameter '$folderPath' isn't a folder");
+		#die;		
+	}
+
+	# Detect drive and dirs
+	my ($drive, $dirs, $file) = File::Spec->splitpath( $folderPath, 1 );
+
+	# prepare a test for "root directory guessing"
+	my $item;
+	my $itemText;
+	my $escapedRootDir = File::Spec->rootdir;
+	print("YYYYYYYYYYYY $escapedRootDir xxxxxxxxxx\n");
+	#$rootDir =~ s/([\\(){}[\]\^\$*+?.|])/\\$1/g;
+	# escape root folder so it can be used in a regexp
+	$escapedRootDir =~ s{ ( [\\(){}[\]\^\$*+?.|] ) }{\\$1}xg;
+
+	print("XXXXXXXXXXX $escapedRootDir xxxxxxxxxx\n");
+
+	# The path is the path of a windows system drive root
+#	if($windows and length($drive) and ($dirs =~ m/^${rootDir}$/) ) {
+	if($windows and length($drive) and ($dirs =~ m{^ $escapedRootDir $}x) ) {
+		$item = $self->_createWindowsDriveItemWithText($drive);
+	} 
+	else { # this is not a windows drive, but a normal directory
+		$item = $self->_createFolderItemWithText($folderPath);
+	}
+	# save the path of the folder associated with the tree item 
+	$folderItems[$item]{folderPath} =  $folderPath;
+	
+	$item = $self->_findAndSetFolderItemProperties($item);
+	
+	# add the new item to the parent item
+	$tree->item("lastchild", $parentItem, $item);
+	
+print("XXXXXXXXXXXXXXXXXXX\n");
+	return;
+}
+
+# Take a
+sub _findAndSetFolderItemProperties {
+	my $self = shift;
+	my $item = shift;
+	my $tree=$self->tree();
+	my $folderPath = $folderItems[$item]{folderPath};
+	my $itemText;
+
+	if(not defined $item){
+		ERROR("Missing input parameter: tree item");
+		croak;
+	}
+	if(not defined $folderPath){
+		ERROR("Missing directory name or path found is not a folder (${folderPath})");
+		croak;
+	}
+
+	my $dirFD;
+	opendir($dirFD, $folderPath) || ( ERROR("Cannot open directory") and return $item);
+
+	# Examine each entry in this folder to know how to display it
+	foreach my $fileInDir (File::Spec->no_upwards(readdir($dirFD))) {
+		print ("xxxx: $fileInDir");
+		my $fileInDirFullPath=File::Spec->catfile($folderPath, $fileInDir);
+
+		# items has subFolders, so make it expandable
+		if(-d $fileInDirFullPath) {
+			$tree->item("configure", $item, -button => 'yes');
+			$tree->item("collapse", $item);
+			$tree->item("state", "set", $item, "hasSubFolders");
+			DEBUG ("Found directory '$fileInDirFullPath'\n");
+#			$self->_createFolderItem;
+		}elsif(-f $fileInDirFullPath) {
+			print("File: ");
+			DEBUG ("Found file '$fileInDirFullPath'\n");
+
+			foreach my $mediaExtension ( @mediaExtensions ) {
+#				print("avant: $mediaExtension  - ".Dumper($mediaExtension));
+#				$mediaExtension =~ s{ ([\\(){}[\]\^\$*+?.|]) }{\\$1}xg;#
+#				print("apres: $mediaExtension  \n");
+#				print("trying extension $mediaExtension\n");
+				if($fileInDir =~ m/^.*\.${mediaExtension}$/i) {
+					DEBUG("$folderPath contain $fileInDir media file");
+					$tree->item("state", "set", $item, "hasMediaFile");
+				}
+				elsif($fileInDir =~ /^\.?mda.xml$/) {
+					DEBUG("$folderPath contain '$fileInDir' MDA XML file");
+					$tree->item("state", "set", $item, "hasMdaXmlFile");
+				}
+			}
+		}else {
+			WARN ("Directory entry '$fileInDirFullPath' isn't a directory nor a normal file\n");
+		}
+	}
+	return $item;
+}
+
+# create a folder item (for tktreectrl) from the full dirname
+# with the name of the folder in the item text 
+sub _createFolderItemWithText {
+	my $self = shift;
+	my $folderPath = shift;
+	my $tree=$self->tree();
+	my $item=$tree->item("create");
+	my $itemText;
+
+	if(not defined $folderPath){
+		ERROR("Missing input parameter: directory name");
+		croak;
+	}
+	
+	$itemText=(File::Spec->splitdir( $folderPath ))[-1];
+	$tree->item("text", $item, "folderColumn", $itemText );
+	return $item;	
+}
+
+# Take a drive name string in parameter and return a tree item with 
+# the the state correspondig to type and volume name (when possible)
+# in: string (like "d:", "c:", etc.)
+sub _createWindowsDriveItemWithText {
+	my $self = shift;
+	my $drive = shift;
+	my $tree=$self->tree();
+	my $item=$tree->item("create");
+	my $itemText;
+	my %driveTypeStylename = (
+		    Win32API::File::DRIVE_UNKNOWN => "isOther",
+		Win32API::File::DRIVE_NO_ROOT_DIR => "isOther",
+		  Win32API::File::DRIVE_REMOVABLE => "isRemovableDrive",
+	          Win32API::File::DRIVE_FIXED => "isFixedDrive",
+	         Win32API::File::DRIVE_REMOTE => "isNetworkDrive",
+		      Win32API::File::DRIVE_CDROM => "isCDROM",
+	        Win32API::File::DRIVE_RAMDISK => "isOther"
+	);
+
+	# define the drive type and associate the item with this state
+	my $driveType = Win32API::File::GetDriveType( $drive );
+# commented because it will be set by generic method _findAndSetFolderItemProperties
+#	$tree->item("configure", $item, -button => 'yes');
+	$tree->item("collapse", $item);
+# commented because it will be set by generic method _findAndSetFolderItemProperties
+#	$tree->item("state", "set", $item, "hasSubFolders");
+
+	# find preconfigured driveStyle string in hash with drive type returned by win32API
+	my $driveStyle=$driveTypeStylename{$driveType};
+	if(not $driveStyle) {
+		croak("Unknown drive type '$drive' (type found: $driveType) \n")
+	}
+	$tree->item("state", "set", $item, $driveStyle);
+
+	my $osFsType = "\0" x 256;
+	my $osVolName = "\0" x 256;
+	my $ouFsFlags = 0;
+	# I had to add '\\' because drive D: (and only this one) refused to work anymore ?!?!
+	if ( Win32API::File::GetVolumeInformation($drive.'\\', $osVolName, 256, [], [], $ouFsFlags, $osFsType, 256 ) ) 
+	{
+		$itemText = "$osVolName ($drive)";
+	}
+	else {
+		$itemText = "CD/DVD Drive ($drive)";
+	}
+	$tree->item("text", $item, "folderColumn", $itemText );
+	return $item;
+}
 
 # Add parentWindow to object and create the tree associated with it
 sub parentWindow {
