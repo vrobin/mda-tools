@@ -13,6 +13,7 @@ use Tkx;
 #use Tk::DirSelect;
 use Log::Log4perl qw(:easy);
 use DirExplorerTree;
+use Data::Dumper;
 
 
 Tkx::package("require", "treectrl");
@@ -103,10 +104,22 @@ $dirTree->init();
 #my $dirTree = Tkx::tk___chooseDirectory(-initialdir => ".");
 #my $dirTree = pw->new_tixDirList( -title=>"Test");
 my $labx2 = $pw->new_ttk__label( -text => "Mojo", -foreground=> "white" , -background=>"red");
-#$pw->add($labx1, -weight  =>2);
+
+#$rightNotebookWindow->state('disabled');
+
+#$pw->add($labx2, -weight  =>2);
 #$pw->add($dirTree, -weight  =>2);
-$pw->add($dirTree->tree, -weight  =>2);
-$pw->add($labx2, -weight  =>2);
+
+# my $rightLabelFrame = $pw->new_ttk__labelframe(-text=>'Toto', -name => 'labelFrame1');
+# my $rightNotebookWindow = $rightLabelFrame->new_ttk__notebook();
+# $rightNotebookWindow->g_pack(-fill => "both", -expand => "yes");
+# $rightLabelFrame->g_pack(-fill => "both", -expand => "yes");
+
+my $rightNotebookWindow = $pw->new_ttk__notebook();
+createRightNotebookTabs($rightNotebookWindow);
+$pw->add($dirTree->tree, -weight => 2);
+$pw->add($rightNotebookWindow, -weight => 4);
+# $pw->add($rightLabelFrame, -weight => 4);
 $pw->g_pack(-fill => "both", -expand => "yes");
 $button->g_pack( -expand => "no");
 
@@ -180,9 +193,22 @@ sub mk_menu {
     return $menu;
 }
 
-
+sub createRightNotebookTabs {
+	my @providers = ('cue', 'media files', 'allmusic', 'amazon', 'arkivMusic','discogs');
+	my $notebook = shift;
+	my $metaDataFrame = $notebook->new_ttk__frame(-name => 'noMetaData');
+	my $noMetaDataLabel = $metaDataFrame->new_ttk__label( -text => 'No metadata found in this folder.');
+	$noMetaDataLabel->g_pack(-anchor => 'center', -expand => 'true');
+	$metaDataFrame->g_pack();
+	$notebook->m_add($metaDataFrame, -text => '...', -state => 'normal');
+#	$notebook->m_add($notebook->new_ttk__frame(-name => 'default'), -text => 'default', -state => 'hidden');
+#	die Dumper($notebook->new_ttk__frame());
+	foreach my $provider (@providers) {
+		my $newFrame = $notebook->new_ttk__frame(-name => $provider);
+		$notebook->m_add($newFrame, -text => $provider, -state => 'hidden');
+	}
+}
 sub changeDirectory {
-	
 }
 
 # about: create the about box of the program, called from Help->about menu
