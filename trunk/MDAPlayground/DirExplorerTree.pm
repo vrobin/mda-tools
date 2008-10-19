@@ -116,7 +116,7 @@ sub init {
     
 #	$tree->element("create", "myComputerFolderImage", "image", -image => $pictos{myComputerPicto}{tkImage});
 #	$tree->element("create", "classicFolderImage", "image", -image => $pictos{folderPicto}{tkImage});
-	$tree->element("create", "folderTxt", "text",
+	$tree->element("create", "folderTxt", "text", -font => ['Tahoma 8'],
 	-fill => ['SystemHighlightText', 'selected focus'],);
 
 #   $T element create sel.e rect -fill [list $::SystemHighlight {selected focus} gray {selected !focus}] -open e -showfocus yes
@@ -166,22 +166,35 @@ sub init {
 
 
 	$self->_initTreeStructure();
+
 #	_addSubFolders($self, '1');
+#bind .l <1> {tk_popup .popupMenu %X %Y} ButtonPress-1
+my $tutu = $self->parentWindow();
+	$tree->g_bind( "<ButtonPress-3>", [
+		sub {
+       	   my $t = shift;
+           my $event = shift;
+           my $detail = shift;
+           my $absoluteX = shift;
+           my $absoluteY = shift;
+           my $relativeX = shift;
+           my $relativeY = shift;
+           #print("ITEMITEM: ".$tree->item("text", "nearest $relativeX $relativeY" ));
+			$self->_selectNearestItem($relativeX, $relativeY);
+#			print "BOUYAAAHHHH at ".Dumper($event)." - $t - e: $event - d: $detail  x: $absoluteX   y: $absoluteY\n";
+          	Tkx::tk___popup($self->_buildFolderPopupMenu(), $absoluteX, $absoluteY);
+			return;
+       },    Tkx::Ev("%T", "%e", "%d", "%X", "%Y", "%x", "%y")]
+	);
+	
 	$tree->m_notify("bind", $tree, "<Expand-before>", [
        sub {
        	   my $t = shift;
            my $i = shift;
            my $event = shift;
            my $detail = shift;
-#           my $item=$tree->item("create", -button => 'yes');
-#				#$tree->item("collapse", $item);
-#				$tree->item("text", $item, "folderTag", "TEST" );           
-#				$tree->item("lastchild", $i, $item);
-#				$tree->item("collapse", $item);
           print "Clicked at ".Dumper($i)." - $t - e: $event - d: $detail\n";
           $self->_addSubFolders($i);
-#          Tkx::update("idletasks");
-#          Tkx::update();
           return $i;
        },    Tkx::Ev("%T", "%I", "%e", "%d")]);
 	$tree->notify("bind", $tree, "<Expand-after>", [
@@ -189,17 +202,50 @@ sub init {
        	my $t = shift;
        	my $i = shift;
        	$tree->item("configure", $i, -button => 'yes');
-#          Tkx::update();
        },    Tkx::Ev("%T", "%I")]);   
 	$tree->m_notify("bind", $tree, "<Collapse-after>", [
        sub {
        	my $t = shift;
        	my $i = shift;
        	$tree->item("configure", $i, -button => 'yes');
-          #Tkx::update();
        },    Tkx::Ev("%T", "%I")]); 
 
 	return;
+}
+
+
+# The method is used to build the menu that popup when
+# user right click on a folder item
+sub _buildFolderPopupMenu {
+	my $self = shift;
+	my $x = shift;
+	my $y = shift;
+	# use local $tree variable to prevent multiple tree getter calls
+	my $tree=$self->tree();	
+	#	my $tutu=$self->parentWindow()->new_menu();
+	my $folderPopupMenu = $tree->new_menu();
+	my $fileMenu = $folderPopupMenu->new_menu(
+        -tearoff => 0,
+    );
+	$folderPopupMenu->add_cascade(
+        -label => "File",
+        -underline => 0,
+        -menu => $fileMenu,
+    );
+	return $folderPopupMenu;
+}
+
+# Select the item near a X/Y relative coordinates
+# used before poping up menu
+sub _selectNearestItem {
+	my $self = shift;
+	my $x = shift;
+	my $y = shift;
+	# use local $tree variable to prevent multiple tree getter calls
+	my $tree=$self->tree();
+	my $item = $tree->item("id", "nearest $x $y"); 
+	$tree->selection("clear");
+	$tree->selection("add", $item);
 }
 
 # Fill the root and 
@@ -231,7 +277,7 @@ sub _initTreeStructure {
 	foreach my $root (@roots) {		
 		$self->_addFolder($treeRoot, $root);
 	}
-	print Dumper \@folderItems;
+	#print Dumper \@folderItems;
 	return;
 }
 
@@ -310,6 +356,19 @@ sub _junkToFold {
 #.t item delete "tag a&&b"
 #	$tree->item("tag",  $item, -tag => ["monpaf" , 'ben oit&&jul,i|e||n&toutseul']);
 #	$tree->item($folderPath);
+#	print Dumper($tree->item("tag", "expr", $parentItem, 'pouet||subFoldersAdded' ));
+# return '1'
+#	print Dumper($tree->item("tag", "expr", $parentItem, "subFoldersAddeAAAd"));
+# return '0'
+          #Tkx::update();
+#           my $item=$tree->item("create", -button => 'yes');
+#				#$tree->item("collapse", $item);
+#				$tree->item("text", $item, "folderTag", "TEST" );           
+#				$tree->item("lastchild", $i, $item);
+#				$tree->item("collapse", $item);
+#          Tkx::update("idletasks");
+#          Tkx::update();
+#          Tkx::update();
 }
 
 sub _addSubFolders {
@@ -318,19 +377,25 @@ sub _addSubFolders {
 	my $folderPath = $folderItems[$parentItem]{folderPath};
 	my $tree=$self->tree();	
 
+	# don't do anything if item already has its subfolders:
+	if( $tree->item("tag", "expr", $parentItem, 'pouet||subFoldersAdded' ) ) {
+		return;
+	}
+	# TODO: add some code to refresh the item content
+	
 	my $dirFD;
 	opendir($dirFD, $folderPath) || ( ERROR("Cannot open directory") and return $parentItem);
-#croak("XXXXXXXXXX AZE !!!");
+
 	# Examine each entry in this folder to know how to display it
 	foreach my $fileInDir (File::Spec->no_upwards(readdir($dirFD))) {
-#		print ("xxxx: $fileInDir");
 		my $fileInDirFullPath=File::Spec->catfile($folderPath, $fileInDir);
-#		print("FFFFFF: $fileInDirFullPath");
 		# items has subFolders, so make it expandable
 		if(-d $fileInDirFullPath) {
 			$self->_addFolder($parentItem, $fileInDirFullPath);
 		}
 	}
+	$tree->item("tag", "add", $parentItem, "subFoldersAdded");
+	return;
 }
 
 sub _addFolder {
@@ -363,12 +428,12 @@ sub _addFolder {
 	my $item;
 	my $itemText;
 	my $escapedRootDir = File::Spec->rootdir;
-	print("YYYYYYYYYYYY $escapedRootDir xxxxxxxxxx\n");
+	#print("YYYYYYYYYYYY $escapedRootDir xxxxxxxxxx\n");
 	#$rootDir =~ s/([\\(){}[\]\^\$*+?.|])/\\$1/g;
 	# escape root folder so it can be used in a regexp
 	$escapedRootDir =~ s{ ( [\\(){}[\]\^\$*+?.|] ) }{\\$1}xg;
 
-	print("XXXXXXXXXXX $escapedRootDir xxxxxxxxxx\n");
+	#print("XXXXXXXXXXX $escapedRootDir xxxxxxxxxx\n");
 
 	# The path is the path of a windows system drive root
 #	if($windows and length($drive) and ($dirs =~ m/^${rootDir}$/) ) {
@@ -386,7 +451,6 @@ sub _addFolder {
 	# add the new item to the parent item
 	$tree->item("lastchild", $parentItem, $item);
 	
-print("XXXXXXXXXXXXXXXXXXX\n");
 	return;
 }
 
@@ -412,7 +476,7 @@ sub _findAndSetFolderItemProperties {
 
 	# Examine each entry in this folder to know how to display it
 	foreach my $fileInDir (File::Spec->no_upwards(readdir($dirFD))) {
-		print ("xxxx: $fileInDir");
+		#print ("xxxx: $fileInDir");
 		my $fileInDirFullPath=File::Spec->catfile($folderPath, $fileInDir);
 
 		# items has subFolders, so make it expandable
@@ -423,7 +487,7 @@ sub _findAndSetFolderItemProperties {
 			DEBUG ("Found directory '$fileInDirFullPath'\n");
 #			$self->_createFolderItem;
 		}elsif(-f $fileInDirFullPath) {
-			print("File: ");
+			#print("File: ");
 			DEBUG ("Found file '$fileInDirFullPath'\n");
 
 			foreach my $mediaExtension ( @mediaExtensions ) {
