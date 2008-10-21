@@ -14,7 +14,7 @@ use Tkx;
 use Log::Log4perl qw(:easy);
 use DirExplorerTree;
 use Data::Dumper;
-
+use Module::Find;
 
 Tkx::package("require", "treectrl");
 Tkx::package("require", "tile");
@@ -117,8 +117,31 @@ my $labx2 = $pw->new_ttk__label( -text => "Mojo", -foreground=> "white" , -backg
 # $rightNotebookWindow->g_pack(-fill => "both", -expand => "yes");
 # $rightLabelFrame->g_pack(-fill => "both", -expand => "yes");
 
+#use DataSource::DOG::DOGReader;
+#my $toto='DOG';
+#die eval '${DataSource::'.${toto}.'::DOGReader::providerName}';
+#			my $dataSource = $dataSourceClass->new();
+#			$albumFile->addDataSource($dataSource);
+#			$albumFile->dataSource($dsName)->retrieve();
+
+#use DataSource::AKM::AKMReader;
+
+# TODO: find the best way to deal with this method (maybe put it in Tools)
+sub findMDAReaderModules{
+	my @MDAReaderModules;
+	foreach my $myModule(findallmod DataSource) {
+		if($myModule =~ /.*Reader/ ) {
+			eval("use $myModule");
+			push @MDAReaderModules, $myModule->new();
+		}
+	}
+	return @MDAReaderModules;
+}
+
+my @MDAReaderModules = findMDAReaderModules();
 my $rightNotebookWindow = $pw->new_ttk__notebook();
-createRightNotebookTabs($rightNotebookWindow);
+# TODO: clean this call, transform this method in specific object
+createRightNotebookTabs($rightNotebookWindow, @MDAReaderModules);
 $pw->add($dirTree->tree, -weight => 2);
 $pw->add($rightNotebookWindow, -weight => 4);
 # $pw->add($rightLabelFrame, -weight => 4);
@@ -195,10 +218,13 @@ sub mk_menu {
     return $menu;
 }
 
+# TODO: Transforme this method and the quick and dirty @providers object
+# TODO: in correct object
 sub createRightNotebookTabs {
 	my %mdaSourcePanel;
-	my @providers = ('cue', 'media_files', 'allmusic', 'amazon', 'arkivMusic','discogs');
+#	my @providers = ('cue', 'media_files', 'allmusic', 'amazon', 'arkivMusic','discogs');
 	my $notebook = shift;
+	my @providers = @_;
 	$mdaSourcePanel{noMetaData}{rootFrameW} = $notebook->new_ttk__frame(-name => 'noMetaData');
 	$mdaSourcePanel{noMetaData}{rootFrameW}->g_pack();
 	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW} = $mdaSourcePanel{noMetaData}{rootFrameW}->new_ttk__label( -text => 'No metadata found in this folder.');
@@ -206,8 +232,9 @@ sub createRightNotebookTabs {
 	$notebook->m_add($mdaSourcePanel{noMetaData}{rootFrameW}, -text => '...', -state => 'normal');
 #	$notebook->m_add($notebook->new_ttk__frame(-name => 'default'), -text => 'default', -state => 'hidden');
 #	die Dumper($notebook->new_ttk__frame());
-	foreach my $provider (@providers) {
-		$mdaSourcePanel{$provider}{rootFrameW} = $notebook->new_ttk__frame(-name => $provider);
+	foreach my $providerDataSource (@providers) {
+		my $provider = $providerDataSource->name();
+		$mdaSourcePanel{$provider}{rootFrameW} = $notebook->new_ttk__frame(-name => '_'.$provider);
 		$notebook->m_add($mdaSourcePanel{$provider}{rootFrameW}, -text => $provider, -state => 'normal');
 		$mdaSourcePanel{$provider}{rootFrame}{PagesManager} = {};
 		my $providerPages = $mdaSourcePanel{$provider}{rootFrame}{PagesManager};
