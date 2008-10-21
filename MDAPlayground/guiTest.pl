@@ -18,6 +18,7 @@ use Data::Dumper;
 
 Tkx::package("require", "treectrl");
 Tkx::package("require", "tile");
+Tkx::package("require", "BWidget");
 Tkx::package("require", "img::png");
 Tkx::ttk__setTheme("winnative");
 
@@ -94,7 +95,8 @@ my $button = $mw->new_ttk__button(
 );
 
 ## in class # my $tree = $pw->new_treectrl();
-
+$Tkx::TRACE='true';
+#die Tkx::i::call("info", 'library');
 my $dirTree=DirExplorerTree->new();
 $dirTree->parentWindow($pw);
 $dirTree->init();
@@ -194,19 +196,64 @@ sub mk_menu {
 }
 
 sub createRightNotebookTabs {
-	my @providers = ('cue', 'media files', 'allmusic', 'amazon', 'arkivMusic','discogs');
+	my %mdaSourcePanel;
+	my @providers = ('cue', 'media_files', 'allmusic', 'amazon', 'arkivMusic','discogs');
 	my $notebook = shift;
-	my $metaDataFrame = $notebook->new_ttk__frame(-name => 'noMetaData');
-	my $noMetaDataLabel = $metaDataFrame->new_ttk__label( -text => 'No metadata found in this folder.');
-	$noMetaDataLabel->g_pack(-anchor => 'center', -expand => 'true');
-	$metaDataFrame->g_pack();
-	$notebook->m_add($metaDataFrame, -text => '...', -state => 'normal');
+	$mdaSourcePanel{noMetaData}{rootFrameW} = $notebook->new_ttk__frame(-name => 'noMetaData');
+	$mdaSourcePanel{noMetaData}{rootFrameW}->g_pack();
+	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW} = $mdaSourcePanel{noMetaData}{rootFrameW}->new_ttk__label( -text => 'No metadata found in this folder.');
+	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW}->g_pack(-anchor => 'center', -expand => 'true');
+	$notebook->m_add($mdaSourcePanel{noMetaData}{rootFrameW}, -text => '...', -state => 'normal');
 #	$notebook->m_add($notebook->new_ttk__frame(-name => 'default'), -text => 'default', -state => 'hidden');
 #	die Dumper($notebook->new_ttk__frame());
 	foreach my $provider (@providers) {
-		my $newFrame = $notebook->new_ttk__frame(-name => $provider);
-		$notebook->m_add($newFrame, -text => $provider, -state => 'hidden');
+		$mdaSourcePanel{$provider}{rootFrameW} = $notebook->new_ttk__frame(-name => $provider);
+		$notebook->m_add($mdaSourcePanel{$provider}{rootFrameW}, -text => $provider, -state => 'normal');
+		$mdaSourcePanel{$provider}{rootFrame}{PagesManager} = {};
+		my $providerPages = $mdaSourcePanel{$provider}{rootFrame}{PagesManager};
+		my $providerRootFrame = $mdaSourcePanel{$provider}{rootFrame};
+		my $providerRootFrameW = $mdaSourcePanel{$provider}{rootFrameW};
+		#die Dumper $providerPages;
+		$mdaSourcePanel{$provider}{rootFrame}{PagesManagerW} = $providerRootFrameW->new_PagesManager();
+		my $providerPagesW = $mdaSourcePanel{$provider}{rootFrame}{PagesManagerW};
+		$providerPagesW->configure(-background => '#0000FF', -width => 200, -height => 200);
+		$providerPagesW->add("lookup");
+		$providerPages->{lookupFrameW}=Tkx::widget->new($providerPagesW->getframe("lookup"));
+		$providerPagesW->add("result");
+		$providerPages->{resultFrameW}=Tkx::widget->new($providerPagesW->getframe("result"));
+		$providerPagesW->add("input");
+		$providerPages->{inputFrameW}=Tkx::widget->new($providerPagesW->getframe("input"));
+		$providerPagesW->add("retrieved");
+		$providerPages->{retrievedFrameW}=Tkx::widget->new($providerPagesW->getframe("retrieved"));
+
+		$providerPagesW->raise("input");
+		$providerPages->{retrievedFrameW}->configure(-background => "#00ff00");
+		$providerPages->{retrievedFrame}{myLabel} = $providerPages->{retrievedFrameW}->new_ttk__label( -text => 'retrieved frame label');
+		$providerPages->{retrievedFrame}{myLabel}->g_pack(-anchor => 'sw');
+		$providerPages->{inputFrameW}->configure(-background => "#ff0000");
+		$providerPages->{inputFrame}{myLabel} = $providerPages->{inputFrameW}->new_ttk__label( -text => 'input frame label');
+		$providerPages->{inputFrame}{myLabel}->g_pack(-anchor => 'nw', -padx => 5, -pady => 2);
+
+		#$providerPagesW->compute___size();
+		$providerPagesW->g_pack(-anchor => 'nw',  -fill => 'both', -expand => 'true');
+#		$providerPages->{inputFrameW}->g_pack();
+#		$providerPages->{retrievedFrameW}->g_pack();
+		
+#		my $providerRootFrame = $mdaSourcePanel{$provider}{rootFrame};
+#		my $providerRootFrameW = $mdaSourcePanel{$provider}{rootFrameW};
+#		my $providerPagesW =$providerRootFrame->{PagesManagerW};
+#		my $providerPages =$providerRootFrame->{PagesManager};
+#		$providerPagesW = $providerRootFrameW->new_PagesManager();
+#		$providerPagesW->add("lookup");
+#		$providerPages->{lookupFrameW}=Tkx::widget->new($providerPagesW->getframe("lookup"));
+#		$providerPagesW->add("result");
+#		$providerPages->{resultFrameW}=Tkx::widget->new($providerPagesW->getframe("result"));
+#		$providerPagesW->add("input");
+#		$providerPages->{inputFrameW}=Tkx::widget->new($providerPagesW->getframe("input"));
+#		$providerPagesW->add("retrieved");
+#		$providerPages->{retrievedFrameW}=Tkx::widget->new($providerPagesW->getframe("retrieved"));
 	}
+#	die Dumper \%mdaSourcePanel;
 }
 sub changeDirectory {
 }
