@@ -47,10 +47,12 @@ use Benchmark;
 use Cwd;
 use Log::Log4perl qw(:easy);
 
-my $DataSourceName = 'CUE';
-my $DataSourceVer = '0.1';
-my $providerName =undef;
-my $providerUrl =undef;
+
+our $DataSourceName = 'CUE';
+our $DataSourceVer = '0.1';
+our $providerName ='CUE Sheet';
+#our $providerName =undef;
+our $providerUrl =undef;
 
 sub new {
 	my $class  = shift;

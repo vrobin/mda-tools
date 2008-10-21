@@ -13,12 +13,12 @@ use Data::Dumper;
 use XML::Simple;
 use Log::Log4perl qw(:easy);
 
-my $dogDomain = 'www.discogs.com';
-my $dogKey = 'd342f3094c';
-my $DataSourceName = 'DOG';
-my $DataSourceVer = '0.1';
-my $providerName ='Discogs';
-my $providerUrl ='http://www.discogs.com';
+our $dogDomain = 'www.discogs.com';
+our $dogKey = 'd342f3094c';
+our $DataSourceName = 'DOG';
+our $DataSourceVer = '0.1';
+our $providerName ='Discogs';
+our $providerUrl ='http://www.discogs.com';
 
 #search query
 # http://www.discogs.com/search?type=<type>&q=<querystring>&f=xml&api_key=<api_key>

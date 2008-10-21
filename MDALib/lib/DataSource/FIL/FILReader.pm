@@ -48,10 +48,10 @@ use Cwd;
 use Audio::FLAC::Header;
 use Log::Log4perl qw(:easy);
 
-my $DataSourceName = 'FIL';
-my $DataSourceVer = '0.1';
-my $providerName ='File Reader';
-my $providerUrl =undef;
+our $DataSourceName = 'FIL';
+our $DataSourceVer = '0.1';
+our $providerName ='File Reader';
+our $providerUrl =undef;
 
 sub new {
 	my $class  = shift;
