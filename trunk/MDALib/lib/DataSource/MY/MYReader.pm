@@ -46,10 +46,10 @@ use Tools;
 use Log::Log4perl qw(:easy);
 use List::Util qw(min max);
 
-my $DataSourceName = 'MY';
-my $DataSourceVer = '0.1';
-my $providerName ='MY Reader';
-my $providerUrl =undef;
+our $DataSourceName = 'MY';
+our $DataSourceVer = '0.1';
+our $providerName ='MY Reader';
+our $providerUrl =undef;
 
 sub new {
 	my $class  = shift;
