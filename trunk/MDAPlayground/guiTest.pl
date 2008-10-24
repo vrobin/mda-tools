@@ -141,7 +141,8 @@ sub findMDAReaderModules{
 my @MDAReaderModules = findMDAReaderModules();
 my $rightNotebookWindow = $pw->new_ttk__notebook();
 # TODO: clean this call, transform this method in specific object
-createRightNotebookTabs($rightNotebookWindow, @MDAReaderModules);
+#createRightNotebookTabs($rightNotebookWindow, @MDAReaderModules);
+createRightNotebookTabsGridForget($rightNotebookWindow, @MDAReaderModules);
 $pw->add($dirTree->tree, -weight => 2);
 $pw->add($rightNotebookWindow, -weight => 4);
 # $pw->add($rightLabelFrame, -weight => 4);
@@ -220,6 +221,7 @@ sub mk_menu {
 
 # TODO: Transforme this method and the quick and dirty @providers object
 # TODO: in correct object
+# version with BWidget::PagesManager
 sub createRightNotebookTabs {
 	my %mdaSourcePanel;
 #	my @providers = ('cue', 'media_files', 'allmusic', 'amazon', 'arkivMusic','discogs');
@@ -261,7 +263,10 @@ sub createRightNotebookTabs {
 		$providerPages->{inputFrame}{myLabel} = $providerPages->{inputFrameW}->new_ttk__label( -text => 'input frame label');
 		$providerPages->{inputFrame}{myLabel}->g_pack(-anchor => 'nw', -padx => 5, -pady => 2);
 
+		$providerPagesW->raise("retrieved");
 		#$providerPagesW->compute___size();
+		$providerPagesW->g_pack(-anchor => 'nw',  -fill => 'both', -expand => 'true');
+		$providerPagesW->raise("input");
 		$providerPagesW->g_pack(-anchor => 'nw',  -fill => 'both', -expand => 'true');
 #		$providerPages->{inputFrameW}->g_pack();
 #		$providerPages->{retrievedFrameW}->g_pack();
@@ -282,6 +287,114 @@ sub createRightNotebookTabs {
 	}
 #	die Dumper \%mdaSourcePanel;
 }
+
+sub createRightNotebookTabsGridForget {
+	my %mdaSourcePanel;
+#	my @providers = ('cue', 'media_files', 'allmusic', 'amazon', 'arkivMusic','discogs');
+	my $notebook = shift;
+	my @providers = @_;
+	$mdaSourcePanel{noMetaData}{rootFrameW} = $notebook->new_ttk__frame(-name => 'noMetaData');
+	$mdaSourcePanel{noMetaData}{rootFrameW}->g_pack();
+	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW} = $mdaSourcePanel{noMetaData}{rootFrameW}->new_ttk__label( -text => 'No metadata found in this folder.');
+	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW}->g_pack(-anchor => 'center', -expand => 'true');
+	$notebook->m_add($mdaSourcePanel{noMetaData}{rootFrameW}, -text => '...', -state => 'normal');
+#	$notebook->m_add($notebook->new_ttk__frame(-name => 'default'), -text => 'default', -state => 'hidden');
+#	die Dumper($notebook->new_ttk__frame());
+		Tkx::ttk__style('configure', 'Yellow.TFrame',	-background => 'yellow', -foreground => 'black', -relief => 'flat');
+		Tkx::ttk__style('configure', 'Blue.TFrame',	-background => 'blue', -foreground => 'black', -relief => 'raised');
+		Tkx::ttk__style('configure', 'Black.TLabel',	-background => 'black', -foreground => 'green', -relief => 'sunken');
+
+	foreach my $providerDataSource (@providers) {
+		my $provider = $providerDataSource->name();
+		$mdaSourcePanel{$provider}{rootFrameW} = $notebook->new_ttk__frame(-name => '_'.$provider);
+		$notebook->m_add($mdaSourcePanel{$provider}{rootFrameW}, -text => $provider, -state => 'normal');
+		$mdaSourcePanel{$provider}{rootFrame}{gridFrame} = {};
+		my $providerPages = $mdaSourcePanel{$provider}{rootFrame}{gridFrame};
+		my $providerRootFrame = $mdaSourcePanel{$provider}{rootFrame};
+		my $providerRootFrameW = $mdaSourcePanel{$provider}{rootFrameW};
+
+		#die Dumper $providerPages;
+		$mdaSourcePanel{$provider}{rootFrame}{gridFrameW} = $providerRootFrameW->new_ttk__frame(-style => 'Blue.TFrame');
+		my $gridFrameW = $mdaSourcePanel{$provider}{rootFrame}{gridFrameW};
+		
+#		$gridFrameW->configure(-background => '#0000FF', -width => 200, -height => 200);
+#		$gridFrameW->configure(-width => 200, -height => 200);
+#		$gridFrameW->add("lookup");
+		$providerPages->{lookupFrameW}=$providerRootFrameW->new_ttk__frame();
+#		$gridFrameW->add("result");
+		$providerPages->{resultFrameW}=$providerRootFrameW->new_ttk__frame();
+#		$gridFrameW->add("input");
+		$providerPages->{inputFrameW}=$providerRootFrameW->new_ttk__frame();
+#		$gridFrameW->add("retrieved");
+		$providerPages->{retrievedFrameW}=$providerRootFrameW->new_ttk__frame(-style => 'Yellow.TFrame');
+#		die Tkx::ttk__style('layout', 'TFrame');
+#		die $providerPages->{retrievedFrameW}->cget('-style');
+# Retrieve class name (and default style)
+
+		print "class: ", Tkx::winfo("class", $providerPages->{retrievedFrameW}), "\n";
+		print "layout tframe: ",Tkx::style("layout", 'TFrame'), "\n";
+		print "layout tutu.tframe: ",Tkx::style("layout", 'Tutu.TFrame'), "\n";
+		print Tkx::style("element", 'options', 'TFrame');
+		
+		$providerPages->{retrievedFrame}{myLabel} = $providerPages->{retrievedFrameW}->new_ttk__label(-style =>'Black.TLabel', -text => 'retrieved frame label');
+		$providerPages->{retrievedFrame}{myLabel}->g_pack(-anchor => 'sw');
+#		$providerPages->{inputFrameW}->configure(-background => "#ff0000");
+		$providerPages->{inputFrame}{myLabel} = $providerPages->{inputFrameW}->new_ttk__label( -text => 'input frame label');
+		$providerPages->{inputFrame}{myLabel}->g_pack(-anchor => 'nw', -padx => 5, -pady => 2);
+		my $bouton = $providerRootFrameW->new_ttk__button(-text => "Button1", 
+				-command => sub { 
+								Tkx::grid("remove", $providerPages->{retrievedFrameW});
+								$providerPages->{inputFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw'); 
+							}
+				);
+		my $bouton2 = $providerRootFrameW->new_ttk__button(-text => "Button1", 
+				-command => sub { 
+								Tkx::grid("remove", $providerPages->{inputFrameW});
+								$providerPages->{retrievedFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw'); 
+							}
+				);
+		#$providerPagesW->compute___size();
+Tkx::grid("columnconfigure", $providerRootFrameW, 0, -weight => 1);
+Tkx::grid("columnconfigure", $providerRootFrameW, 1, -weight => 1);
+Tkx::grid("rowconfigure", $providerRootFrameW, 0, -weight => 1);
+#Tkx::grid("columnconfigure", $gridFrameW, 1, -weight => 1);
+#Tkx::grid("rowconfigure", $providerRootFrameW, 1, -weight => 1);
+		$providerPages->{retrievedFrameW}->g_grid(-columnspan => 2, -sticky => 'nsew');
+#		Tkx::grid("remove", $providerPages->{retrievedFrameW});
+#		$providerPages->{inputFrameW}->g_grid(  -sticky => 'nesw');
+#		Tkx::grid("remove", $providerPages->{inputFrameW});
+#		$providerPages->{retrievedFrameW}->g_grid(-sticky => 'nsew');
+		$bouton->g_grid(-row=>1, -column=>0);
+		$bouton2->g_grid(-row=>1, -column=>1);
+#		$providerPages->{retrievedFrameW}->g_grid($providerPages->{inputFrameW}, -sticky => 'nesw', -in => $gridFrameW);
+#$providerRootFrameW->g_pack(-fill => 'both', -expand => 'true');
+
+#		$gridFrameW->g_grid(-row=>0, -column=>0, -sticky => 'nsew', -ipadx=>50, -padx=>50);
+#		$gridFrameW->g_pack(-fill => 'both', -expand => 'true' );
+#		die $gridFrameW->g_pack('info');
+		#$gridFrameW->{inputFrameW}->g_grid(-anchor => 'nw',  -fill => 'both', -expand => 'true');
+#		$providerPagesW->g_pack(-anchor => 'nw',  -fill => 'both', -expand => 'true');
+#		$providerPages->{inputFrameW}->g_pack();
+#		$providerPages->{retrievedFrameW}->g_pack();
+		
+#		my $providerRootFrame = $mdaSourcePanel{$provider}{rootFrame};
+#		my $providerRootFrameW = $mdaSourcePanel{$provider}{rootFrameW};
+#		my $providerPagesW =$providerRootFrame->{PagesManagerW};
+#		my $providerPages =$providerRootFrame->{PagesManager};
+#		$providerPagesW = $providerRootFrameW->new_PagesManager();
+#		$providerPagesW->add("lookup");
+#		$providerPages->{lookupFrameW}=Tkx::widget->new($providerPagesW->getframe("lookup"));
+#		$providerPagesW->add("result");
+#		$providerPages->{resultFrameW}=Tkx::widget->new($providerPagesW->getframe("result"));
+#		$providerPagesW->add("input");
+#		$providerPages->{inputFrameW}=Tkx::widget->new($providerPagesW->getframe("input"));
+#		$providerPagesW->add("retrieved");
+#		$providerPages->{retrievedFrameW}=Tkx::widget->new($providerPagesW->getframe("retrieved"));
+	}
+#	die Dumper \%mdaSourcePanel;
+}
+
+
 sub changeDirectory {
 }
 
