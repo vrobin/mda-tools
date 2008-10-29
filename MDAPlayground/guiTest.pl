@@ -15,6 +15,7 @@ use Log::Log4perl qw(:easy);
 use DirExplorerTree;
 use Data::Dumper;
 use Module::Find;
+use DataSourcesNotebook;
 
 Tkx::package("require", "treectrl");
 Tkx::package("require", "tile");
@@ -42,14 +43,6 @@ my $conf = q(
 # Initialize logging behaviour
 Log::Log4perl->init( \$conf );
 
-
-#Tkx::package("require", "tile");
-#Tkx::package("require", "Tktable");
-#Tkx::package("require", "BWidget");
-#Tkx::package("require", "snit");
-#Tkx::package("require", "tooltip");
-
-
 # Set widget theme used
 
 
@@ -63,11 +56,6 @@ Log::Log4perl->init( \$conf );
 #print Tkx::ttk__style_theme("names")."\n";
 print Tkx::i::call("ttk::style", ("theme", "names"))."\n";
 
-#print join "\n", (Tkx::SplitList(Tkx::set('auto_path'))), "\n"; 
-#my $i = Tcl->new; 
-#$i->Init; 
-#print $i->call('info','patchlevel') ."\n";
-
 # Create main window
 my $mw = Tkx::widget->new(q{.});
 $mw->m_configure(-menu => mk_menu($mw));
@@ -80,7 +68,7 @@ $mw->g_wm_title("MDA Gui");
 #Tkx::wm_title( $mw, "test");
 
 # Create PanedWindow (tree on the left, content on the right part)
-my $pw = $mw->new_ttk__panedwindow(
+my $panedWindow = $mw->new_ttk__panedwindow(
      -orient => "horizontal"
 );
 
@@ -88,43 +76,22 @@ my $pw = $mw->new_ttk__panedwindow(
 # PanedWindow (no more working with tkx because orientation is read only)
 my $button = $mw->new_ttk__button(
      -text => "h/v",
-     -command => sub {$pw->g_pack(-fill => "both", -expand => "yes");
+     -command => sub {$panedWindow->g_pack(-fill => "both", -expand => "yes");
      	Tkx::update(); return;
-        $pw->config(
-            -orient => ($pw->cget(-orient) eq "horizontal")?"vertical":"horizontal") }
+        $panedWindow->config(
+            -orient => ($panedWindow->cget(-orient) eq "horizontal")?"vertical":"horizontal") }
 );
 
-## in class # my $tree = $pw->new_treectrl();
+## in class # my $tree = $panedWindow->new_treectrl();
 $Tkx::TRACE='true';
 #die Tkx::i::call("info", 'library');
 my $dirTree=DirExplorerTree->new();
-$dirTree->parentWindow($pw);
+$dirTree->parentWindow($panedWindow);
 $dirTree->init();
 
-#my $labx1 = $pw->new_ttk__label( -text => "Bapy", -foreground => "orange" , -background=>"black");
 
-#my $dirTree = Tkx::tk___chooseDirectory(-initialdir => ".");
-#my $dirTree = pw->new_tixDirList( -title=>"Test");
-my $labx2 = $pw->new_ttk__label( -text => "Mojo", -foreground=> "white" , -background=>"red");
+my $labx2 = $panedWindow->new_ttk__label( -text => "Mojo", -foreground=> "white" , -background=>"red");
 
-#$rightNotebookWindow->state('disabled');
-
-#$pw->add($labx2, -weight  =>2);
-#$pw->add($dirTree, -weight  =>2);
-
-# my $rightLabelFrame = $pw->new_ttk__labelframe(-text=>'Toto', -name => 'labelFrame1');
-# my $rightNotebookWindow = $rightLabelFrame->new_ttk__notebook();
-# $rightNotebookWindow->g_pack(-fill => "both", -expand => "yes");
-# $rightLabelFrame->g_pack(-fill => "both", -expand => "yes");
-
-#use DataSource::DOG::DOGReader;
-#my $toto='DOG';
-#die eval '${DataSource::'.${toto}.'::DOGReader::providerName}';
-#			my $dataSource = $dataSourceClass->new();
-#			$albumFile->addDataSource($dataSource);
-#			$albumFile->dataSource($dsName)->retrieve();
-
-#use DataSource::AKM::AKMReader;
 
 # TODO: find the best way to deal with this method (maybe put it in Tools)
 sub findMDAReaderModules{
@@ -139,14 +106,18 @@ sub findMDAReaderModules{
 }
 
 my @MDAReaderModules = findMDAReaderModules();
-my $rightNotebookWindow = $pw->new_ttk__notebook();
+
+my $dsNotebook = DataSourcesNotebook->new();
+$dsNotebook->parentWindow( $panedWindow );
+$dsNotebook->sources(\@MDAReaderModules);
+$dsNotebook->init();
 # TODO: clean this call, transform this method in specific object
 #createRightNotebookTabs($rightNotebookWindow, @MDAReaderModules);
-createRightNotebookTabsGridForget($rightNotebookWindow, @MDAReaderModules);
-$pw->add($dirTree->tree, -weight => 2);
-$pw->add($rightNotebookWindow, -weight => 4);
-# $pw->add($rightLabelFrame, -weight => 4);
-$pw->g_pack(-fill => "both", -expand => "yes");
+#createRightNotebookTabsGridForget($rightNotebookWindow, @MDAReaderModules);
+$panedWindow->add($dirTree->tree, -weight => 2);
+$panedWindow->add($dsNotebook->widget, -weight => 4);
+# $panedWindow->add($rightLabelFrame, -weight => 4);
+$panedWindow->g_pack(-fill => "both", -expand => "yes");
 $button->g_pack( -expand => "no");
 
 
@@ -219,75 +190,9 @@ sub mk_menu {
     return $menu;
 }
 
-# TODO: Transforme this method and the quick and dirty @providers object
-# TODO: in correct object
-# version with BWidget::PagesManager
-sub createRightNotebookTabs {
-	my %mdaSourcePanel;
-#	my @providers = ('cue', 'media_files', 'allmusic', 'amazon', 'arkivMusic','discogs');
-	my $notebook = shift;
-	my @providers = @_;
-	$mdaSourcePanel{noMetaData}{rootFrameW} = $notebook->new_ttk__frame(-name => 'noMetaData');
-	$mdaSourcePanel{noMetaData}{rootFrameW}->g_pack();
-	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW} = $mdaSourcePanel{noMetaData}{rootFrameW}->new_ttk__label( -text => 'No metadata found in this folder.');
-	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW}->g_pack(-anchor => 'center', -expand => 'true');
-	$notebook->m_add($mdaSourcePanel{noMetaData}{rootFrameW}, -text => '...', -state => 'normal');
-#	$notebook->m_add($notebook->new_ttk__frame(-name => 'default'), -text => 'default', -state => 'hidden');
-#	die Dumper($notebook->new_ttk__frame());
-	foreach my $providerDataSource (@providers) {
-		my $provider = $providerDataSource->name();
-		$mdaSourcePanel{$provider}{rootFrameW} = $notebook->new_ttk__frame(-name => '_'.$provider);
-		$notebook->m_add($mdaSourcePanel{$provider}{rootFrameW}, -text => $provider, -state => 'normal');
-		$mdaSourcePanel{$provider}{rootFrame}{PagesManager} = {};
-		my $providerPages = $mdaSourcePanel{$provider}{rootFrame}{PagesManager};
-		my $providerRootFrame = $mdaSourcePanel{$provider}{rootFrame};
-		my $providerRootFrameW = $mdaSourcePanel{$provider}{rootFrameW};
-		#die Dumper $providerPages;
-		$mdaSourcePanel{$provider}{rootFrame}{PagesManagerW} = $providerRootFrameW->new_PagesManager();
-		my $providerPagesW = $mdaSourcePanel{$provider}{rootFrame}{PagesManagerW};
-		$providerPagesW->configure(-background => '#0000FF', -width => 200, -height => 200);
-		$providerPagesW->add("lookup");
-		$providerPages->{lookupFrameW}=Tkx::widget->new($providerPagesW->getframe("lookup"));
-		$providerPagesW->add("result");
-		$providerPages->{resultFrameW}=Tkx::widget->new($providerPagesW->getframe("result"));
-		$providerPagesW->add("input");
-		$providerPages->{inputFrameW}=Tkx::widget->new($providerPagesW->getframe("input"));
-		$providerPagesW->add("retrieved");
-		$providerPages->{retrievedFrameW}=Tkx::widget->new($providerPagesW->getframe("retrieved"));
-
-		$providerPagesW->raise("input");
-		$providerPages->{retrievedFrameW}->configure(-background => "#00ff00");
-		$providerPages->{retrievedFrame}{myLabel} = $providerPages->{retrievedFrameW}->new_ttk__label( -text => 'retrieved frame label');
-		$providerPages->{retrievedFrame}{myLabel}->g_pack(-anchor => 'sw');
-		$providerPages->{inputFrameW}->configure(-background => "#ff0000");
-		$providerPages->{inputFrame}{myLabel} = $providerPages->{inputFrameW}->new_ttk__label( -text => 'input frame label');
-		$providerPages->{inputFrame}{myLabel}->g_pack(-anchor => 'nw', -padx => 5, -pady => 2);
-
-		$providerPagesW->raise("retrieved");
-		#$providerPagesW->compute___size();
-		$providerPagesW->g_pack(-anchor => 'nw',  -fill => 'both', -expand => 'true');
-		$providerPagesW->raise("input");
-		$providerPagesW->g_pack(-anchor => 'nw',  -fill => 'both', -expand => 'true');
-#		$providerPages->{inputFrameW}->g_pack();
-#		$providerPages->{retrievedFrameW}->g_pack();
-		
-#		my $providerRootFrame = $mdaSourcePanel{$provider}{rootFrame};
-#		my $providerRootFrameW = $mdaSourcePanel{$provider}{rootFrameW};
-#		my $providerPagesW =$providerRootFrame->{PagesManagerW};
-#		my $providerPages =$providerRootFrame->{PagesManager};
-#		$providerPagesW = $providerRootFrameW->new_PagesManager();
-#		$providerPagesW->add("lookup");
-#		$providerPages->{lookupFrameW}=Tkx::widget->new($providerPagesW->getframe("lookup"));
-#		$providerPagesW->add("result");
-#		$providerPages->{resultFrameW}=Tkx::widget->new($providerPagesW->getframe("result"));
-#		$providerPagesW->add("input");
-#		$providerPages->{inputFrameW}=Tkx::widget->new($providerPagesW->getframe("input"));
-#		$providerPagesW->add("retrieved");
-#		$providerPages->{retrievedFrameW}=Tkx::widget->new($providerPagesW->getframe("retrieved"));
-	}
-#	die Dumper \%mdaSourcePanel;
+sub createRightNotebook {
+	
 }
-
 sub createRightNotebookTabsGridForget {
 	my %mdaSourcePanel;
 #	my @providers = ('cue', 'media_files', 'allmusic', 'amazon', 'arkivMusic','discogs');
@@ -295,9 +200,13 @@ sub createRightNotebookTabsGridForget {
 	my @providers = @_;
 	$mdaSourcePanel{noMetaData}{rootFrameW} = $notebook->new_ttk__frame(-name => 'noMetaData');
 	$mdaSourcePanel{noMetaData}{rootFrameW}->g_pack();
-	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW} = $mdaSourcePanel{noMetaData}{rootFrameW}->new_ttk__label( -text => 'No metadata found in this folder.');
+	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW} = $mdaSourcePanel{noMetaData}{rootFrameW}->new_ttk__label(  -text => 'No metadata found in this folder.');
 	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW}->g_pack(-anchor => 'center', -expand => 'true');
 	$notebook->m_add($mdaSourcePanel{noMetaData}{rootFrameW}, -text => '...', -state => 'normal');
+	
+	print "class XXX: ", Tkx::winfo("class", ".p.n"), "\n";
+	print "layout YYY: ", Tkx::style("layout", "TButton"), "\n";
+	print("ZZZ:", Tkx::style("lookup", "TNotebook", ""), "\n");
 #	$notebook->m_add($notebook->new_ttk__frame(-name => 'default'), -text => 'default', -state => 'hidden');
 #	die Dumper($notebook->new_ttk__frame());
 		Tkx::ttk__style('configure', 'Yellow.TFrame',	-background => 'yellow', -foreground => 'black', -relief => 'flat');
@@ -305,8 +214,9 @@ sub createRightNotebookTabsGridForget {
 		Tkx::ttk__style('configure', 'Black.TLabel',	-background => 'black', -foreground => 'green', -relief => 'sunken');
 
 	foreach my $providerDataSource (@providers) {
-		my $provider = $providerDataSource->name();
-		$mdaSourcePanel{$provider}{rootFrameW} = $notebook->new_ttk__frame(-name => '_'.$provider);
+		my $provider = $providerDataSource->providerName();
+		my $providerTabName = lc($providerDataSource->name()).'Tab';
+		$mdaSourcePanel{$provider}{rootFrameW} = $notebook->new_ttk__frame(-name => $providerTabName);
 		$notebook->m_add($mdaSourcePanel{$provider}{rootFrameW}, -text => $provider, -state => 'normal');
 		$mdaSourcePanel{$provider}{rootFrame}{gridFrame} = {};
 		my $providerPages = $mdaSourcePanel{$provider}{rootFrame}{gridFrame};
@@ -341,13 +251,13 @@ sub createRightNotebookTabsGridForget {
 #		$providerPages->{inputFrameW}->configure(-background => "#ff0000");
 		$providerPages->{inputFrame}{myLabel} = $providerPages->{inputFrameW}->new_ttk__label( -text => 'input frame label');
 		$providerPages->{inputFrame}{myLabel}->g_pack(-anchor => 'nw', -padx => 5, -pady => 2);
-		my $bouton = $providerRootFrameW->new_ttk__button(-text => "Button1", 
+		my $bouton = $providerRootFrameW->new_ttk__button(-text => "Input", 
 				-command => sub { 
 								Tkx::grid("remove", $providerPages->{retrievedFrameW});
 								$providerPages->{inputFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw'); 
 							}
 				);
-		my $bouton2 = $providerRootFrameW->new_ttk__button(-text => "Button1", 
+		my $bouton2 = $providerRootFrameW->new_ttk__button(-text => "Retrieved", 
 				-command => sub { 
 								Tkx::grid("remove", $providerPages->{inputFrameW});
 								$providerPages->{retrievedFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw'); 
@@ -412,3 +322,43 @@ sub about {
 }
     
 Tkx::MainLoop();
+
+
+
+
+
+###############################
+### Junk code graveyard #######
+###############################
+#my $labx1 = $panedWindow->new_ttk__label( -text => "Bapy", -foreground => "orange" , -background=>"black");
+
+#my $dirTree = Tkx::tk___chooseDirectory(-initialdir => ".");
+#my $dirTree = pw->new_tixDirList( -title=>"Test");
+#$rightNotebookWindow->state('disabled');
+
+#$panedWindow->add($labx2, -weight  =>2);
+#$panedWindow->add($dirTree, -weight  =>2);
+
+# my $rightLabelFrame = $panedWindow->new_ttk__labelframe(-text=>'Toto', -name => 'labelFrame1');
+# my $rightNotebookWindow = $rightLabelFrame->new_ttk__notebook();
+# $rightNotebookWindow->g_pack(-fill => "both", -expand => "yes");
+# $rightLabelFrame->g_pack(-fill => "both", -expand => "yes");
+
+#use DataSource::DOG::DOGReader;
+#my $toto='DOG';
+#die eval '${DataSource::'.${toto}.'::DOGReader::providerName}';
+#			my $dataSource = $dataSourceClass->new();
+#			$albumFile->addDataSource($dataSource);
+#			$albumFile->dataSource($dsName)->retrieve();
+
+#use DataSource::AKM::AKMReader;
+
+#Tkx::package("require", "tile");
+#Tkx::package("require", "Tktable");
+#Tkx::package("require", "BWidget");
+#Tkx::package("require", "snit");
+#Tkx::package("require", "tooltip");
+#print join "\n", (Tkx::SplitList(Tkx::set('auto_path'))), "\n"; 
+#my $i = Tcl->new; 
+#$i->Init; 
+#print $i->call('info','patchlevel') ."\n";
