@@ -44,7 +44,9 @@ my $conf = q(
 Log::Log4perl->init( \$conf );
 
 # Set widget theme used
-
+use DataSource::AKM::AKMLookup;
+my $lookup = DataSource::AKM::AKMLookup->new();
+#die Dumper($lookup->retrievalParamsByCriteriasAndValuesHashRef( {target => 'album', type => 'Url'} ));
 
 # Print the list of available themes: 
 # xpnative clam alt classic default winnative
