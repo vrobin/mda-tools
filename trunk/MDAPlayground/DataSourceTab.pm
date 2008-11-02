@@ -37,6 +37,83 @@ sub new {
 	return $self;
 }
 
+sub showSubFrame {
+	my $self = shift;
+	my $frameToShowName =  shift;
+	# name of the hash key is <frameName>FrameW where 'W' stands for Widget
+	#print(Tkx::grid('info', $self->{retrievedFrameW}), "\n");
+	foreach my $subFrameName ( @{$self->{subFramesNames}} ) {
+		if(Tkx::grid('info', $self->subFrame($subFrameName)) ) {
+#			print $subFrameName, "\n";
+			Tkx::grid('remove', $self->subFrame($subFrameName));
+		}
+	}
+#	print($frameName, "\n");
+#	return;
+#	my $frameHashKey =  shift().'FrameW';
+#	Tkx::grid("remove", $self->{$frameHashKey});
+	$self->subFrame($frameToShowName)->g_grid(-columnspan => 2, -row=>1, -column=>0,  -sticky => 'nesw'); 
+}
+
+
+sub subFrame {
+	my $self = shift;
+	my $frameName =  shift;
+	# name of the hash key is <frameName>FrameW where 'W' stands for Widget
+	my $frameHashKey =  lc($frameName).'FrameW';
+	return $self->{$frameHashKey};
+}
+
+sub addSubFrame {
+	my $self = shift;
+	my $frameName =  shift;
+	# name of the hash key is <frameName>FrameW where 'W' stands for Widget
+	my $frameHashKey =  lc($frameName).'FrameW';
+	$self->{$frameHashKey}=$self->widget()->new_ttk__frame();
+	return $self->{$frameHashKey};
+}
+
+sub subFrameContent {
+	my $self = shift;
+	my $frameName =  shift;
+	# name of the hash key is <frameName>Frame
+	my $frameContentHashKey =  lc($frameName).'Frame';
+	if(not exists($self->{$frameContentHashKey})) {
+		$self->{$frameContentHashKey} = {};
+	}
+	return $self->{$frameContentHashKey};
+}
+
+sub createRadioPanel {
+	my $self = shift;
+
+	$self->{radioButtonValue} = '';
+	Tkx::ttk__style('configure', 'Blue.TFrame',	-background => 'blue', -foreground => 'black', -relief => 'solid');
+	$self->{radioButtonFrameW} = $self->widget()->new_ttk__frame(-style => 'Blue.TFrame' );
+	
+	$self->{radioButtonFrame}{separatorW}=$self->{radioButtonFrameW}->new_ttk__separator( -orient => 'horizontal');
+	$self->{radioButtonFrame}{separatorW}->g_pack(-side => 'bottom', -fill => 'x', -expand => 'true' );
+
+	foreach my $subFrameName ( @{$self->{subFramesNames}} ) {
+		$self->{radioButtonFrame}{$subFrameName.'radiobuttonW'} = 
+					$self->{radioButtonFrameW}->new_ttk__radiobutton( 
+							-text => $subFrameName,
+							-value => lc($subFrameName),
+							-variable =>  \$self->{radioButtonValue},
+							-command => sub { $self->showSubFrame($self->{radioButtonValue}), "\n"; }
+					);
+		$self->{radioButtonFrame}{$subFrameName.'radiobuttonW'}->g_pack(-side => 'left' );
+	}
+
+	return $self->{radioButtonFrameW};
+}
+
+#	$self->{resultFrameW}=$self->widget()->new_ttk__frame();
+#	$self->{inputFrameW}=$self->widget()->new_ttk__frame();
+#	$self->{retrievedFrameW}=$self->widget()->new_ttk__frame(-style => 'Yellow.TFrame');
+#	die Dumper(\$self);
+
+
 sub init {
 	my $self = shift;
 	my $tabName = $self->source()->providerName();
@@ -44,39 +121,52 @@ sub init {
 	$self->widget( $self->parentWindow()->new_ttk__frame(-name => $tabId));
 	$self->parentWindow()->m_add($self->widget(), -text => $tabName, -state => 'normal');
 	
-	# sub frames
-	$self->{lookupFrameW}=$self->widget()->new_ttk__frame();
-	$self->{resultFrameW}=$self->widget()->new_ttk__frame();
-	$self->{inputFrameW}=$self->widget()->new_ttk__frame();
-	$self->{retrievedFrameW}=$self->widget()->new_ttk__frame(-style => 'Yellow.TFrame');
+	# create sub frames
+	$self->{actions} = {
+		setSearchParams  =>  { name => 'Search', method=>'', paramList=>'' },
+		viewSearchResults  =>  {name => 'Results', method=>'', paramList=>''},
+		setRetrieveParams =>  {name => 'Force', method=>'', paramList=>''},
+		viewRetrieveParams =>  {name => '', method=>'', paramList=>''}
+	};
+	$self->{subFramesNames} = ['Lookup', 'Result','Input', 'Retrieved'];
+	foreach my $subFrameName ( @{$self->{subFramesNames}} ) {
+		$self->addSubFrame($subFrameName);
+	}
 
-	# labels on two frames
-	$self->{retrievedFrame}{myLabel} = $self->{retrievedFrameW}->new_ttk__label(-style =>'Black.TLabel', -text => 'retrieved frame label');
-	$self->{retrievedFrame}{myLabel}->g_pack(-anchor => 'sw');
-	$self->{inputFrame}{myLabel} = $self->{inputFrameW}->new_ttk__label( -text => 'input frame label');
-	$self->{inputFrame}{myLabel}->g_pack(-anchor => 'nw', -padx => 5, -pady => 2);
+	# create labels on two frames
+	$self->subFrameContent('retrieved')->{myLabel} = $self->subFrame('retrieved')->new_ttk__label(-style =>'Black.TLabel', -text => 'retrieved frame label');
+	$self->subFrameContent('retrieved')->{myLabel}->g_pack(-anchor => 'sw');
+	$self->subFrameContent('input')->{myLabel} = $self->{inputFrameW}->new_ttk__label( -text => 'input frame label');
+	$self->subFrameContent('input')->{myLabel}->g_pack(-anchor => 'nw', -padx => 5, -pady => 2);
 
-	# two buttons to switch frames
-	my $bouton = $self->widget()->new_ttk__button(-text => "Input", 
-			-command => sub { 
-							Tkx::grid("remove", $self->{retrievedFrameW});
-							$self->{inputFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw'); 
-						}
-			);
-	my $bouton2 = $self->widget()->new_ttk__button(-text => "Retrieved", 
-			-command => sub { 
-							Tkx::grid("remove", $self->{inputFrameW});
-							$self->{retrievedFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw'); 
-						}
-			);
+	# Radio buttons and separator with the enclosing frame
+	$self->createRadioPanel();
+	
+	
+#	my $bouton = $self->widget()->new_ttk__button(-text => "Input", 
+#			-command => sub { 
+#							Tkx::grid("remove", $self->{retrievedFrameW});
+#							$self->{inputFrameW}->g_grid(-columnspan => 2, -row=>1, -column=>0,  -sticky => 'nesw'); 
+#						}
+#			);
+#	my $bouton2 = $self->widget()->new_ttk__button(-text => "Retrieved", 
+#			-command => sub { 
+#							Tkx::grid("remove", $self->{inputFrameW});
+#							$self->{retrievedFrameW}->g_grid(-columnspan => 2, -row=>1, -column=>0,  -sticky => 'nesw'); 
+#						}
+#			);
 
 	Tkx::grid("columnconfigure", $self->widget(), 0, -weight => 1);
-	Tkx::grid("columnconfigure", $self->widget(), 1, -weight => 1);
-	Tkx::grid("rowconfigure", $self->widget(), 0, -weight => 1);
+#	Tkx::grid("columnconfigure", $self->widget(), 1, -weight => 1);
+	Tkx::grid("rowconfigure", $self->widget(), 1, -weight => 1);
 
-	$self->{retrievedFrameW}->g_grid(-columnspan => 2, -sticky => 'nsew');
-	$bouton->g_grid(-row=>1, -column=>0);
-	$bouton2->g_grid(-row=>1, -column=>1);
+#	$radio1->g_grid(-row=>0, -column=>2);
+#	$radio2->g_grid(-row=>0, -column=>3);
+#	$radio3->g_grid(-row=>0, -column=>4);
+#	$bouton->g_grid(-row=>0, -column=>0);
+#	$bouton2->g_grid(-row=>0, -column=>1);
+	$self->{radioButtonFrameW}->g_grid(-row=>0, -column=>0,  -sticky => 'nesw');
+	$self->{retrievedFrameW}->g_grid(-columnspan => 2, -row=>1, -column=>0,  -sticky => 'nesw');
 
 }
 
