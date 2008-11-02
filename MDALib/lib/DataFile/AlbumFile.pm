@@ -36,7 +36,7 @@ sub dataSources  {
 		return ($self->{dataSources}{dataSource});
 	}
 	if($#$dataSources == -1) {
-		DEBUG "called disc->dataSources with an empty array, truncating!";
+		DEBUG "called AlbumFile->dataSources with an empty array, truncating!";
 	}
 	$self->{dataSources}{dataSource} = $dataSources;
 }
@@ -166,6 +166,86 @@ sub addDataSource {
 	push @{$self->{dataSources}{dataSource}}, $dataSource;
 }
 
+sub lookupData {
+	my $self = shift or return undef;
+	my $lookupDataName = shift or return undef; 
+
+	# DataSource must have it's providerName filled for coherency check
+	unless( $self and $lookupDataName ) { 
+		ERROR("Missing lookup data name"); 
+		return undef; 
+	}
+	
+	# foreach dataSource in this albumfile, look for an already existing dataSource with the same name
+	foreach my $existingLookupData ( @{$self->{lookupDatas}{lookupData}} ) {
+		if($existingLookupData->name() eq $lookupDataName) {
+			return $existingLookupData;
+		}
+	}
+ 
+	WARN("Lookupdata $lookupDataName not found");
+	return undef;
+}
+
+sub lookupDatas  {
+	my $self = shift;
+	my $lookupDatas = shift;
+	
+	# if no performances array ref is sent
+	if(!$lookupDatas) {
+		
+		# if no performances array exists
+		if(ref($self->{lookupDatas}{lookupData}) ne 'ARRAY') {
+			#create it
+			$self->{lookupDatas}{lookupData}=[];
+			DEBUG 'Initializing normalized date array'
+		} # returning existing or initialized
+		
+		return ($self->{lookupDatas}{lookupData});
+	}
+	
+	if($#$lookupDatas == -1) {
+		DEBUG "called AlbumFile->$lookupDatas with an empty array, truncating!";
+	}
+	
+	$self->{lookupDatas}{lookupData} = $lookupDatas;
+}
+
+sub addLookupData {
+	my $self = shift;
+	my $lookupData = shift; 
+	# if param is not an doesn't-> return
+	if ( ref($lookupData) !~ m/DataSource\:\:[\w]{0,3}\:\:[\w]*Lookup/ ) {
+		# return It
+		ERROR ("no LookupData object in parameter ");
+		return (undef );
+	}
+	
+	# DataSource must have it's providerName filled for coherency check
+	unless( $lookupData->name() ) { 
+		ERROR("Missing provider name in lookupData"); 
+		return; 
+	}
+	
+	# foreach dataSource in this albumfile, look for an already existing dataSource with the same name
+#	foreach my $existingDataSource ( @{$self->{dataSources}{dataSource}} ) {
+#		if($existingDataSource->name() eq $dataSource->name()) {
+#			WARN("DataSource ",$dataSource->name()," already exists, overwriting");
+#			return undef;
+#		}
+#	}
+
+	for my $i (0 .. $#{$self->{lookupDatas}{lookupData}} ) {
+		if(${$self->{lookupDatas}{lookupData}}[$i]->name() eq  $lookupData->name()) {
+			WARN("LookupData ",$lookupData->name()," already exists, overwriting");
+			$lookupData->albumFile($self);
+			return ${$self->{lookupDatas}{lookupData}}[$i]=$lookupData;
+		}
+	}
+
+	$lookupData->albumFile($self);
+	push @{$self->{lookupDatas}{lookupData}}, $lookupData;
+}
 
 END { }    # module clean-up code here (global destructor)
 1;
