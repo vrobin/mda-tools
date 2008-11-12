@@ -6,6 +6,7 @@ use utf8;
 use Data::Dumper;
 use Tools;
 use Log::Log4perl qw(:easy);
+use Module::Find;
 
 # Constructor method, by default, takes the same params as DataSource object
 sub new {
@@ -59,10 +60,16 @@ sub class {
 
 # name element accessor, returns or set name
 sub name {
-	my $self = shift;
+	my $selforClassname = shift;
 	my $name   = shift;
-	if ($name) { $self->{name} = Tools::trim($name) }
-	return $self->{name};
+	if(not ref($selforClassname)) # param isn't a reference, must be a static call
+	{ # if  $self is not a reference, it must be a class (class access)
+		my $varName = $selforClassname.'::DataSourceName';
+		no strict "refs"; 	
+		return $$varName;
+	}
+	if ($name) { $selforClassname->{name} = Tools::trim($name) }
+	return $selforClassname->{name};
 }
 
 # version element accessor, returns or set version
@@ -75,18 +82,48 @@ sub version {
 
 # providerUrl element accessor, returns or set providerUrl
 sub providerUrl {
-	my $self = shift;
+	my $selforClassname = shift;
 	my $providerUrl   = shift;
-	if ($providerUrl) { $self->{providerUrl} = Tools::trim($providerUrl) }
-	return $self->{providerUrl};
+
+	if(not ref($selforClassname)) # param isn't a reference, must be a static call
+	{ # if  $self is not a reference, it must be a class (class access)
+		my $varName = $selforClassname.'::providerUrl';
+		no strict "refs"; 	
+		return $$varName;
+	}
+	
+	if ($providerUrl) { $selforClassname->{providerUrl} = Tools::trim($providerUrl) }
+	return $selforClassname->{providerUrl};
 }
 
 # providerName element accessor, returns or set providerName
 sub providerName {
-	my $self = shift;
+	my $selforClassname = shift;
 	my $providerName   = shift;
-	if ($providerName) { $self->{providerName} = Tools::trim($providerName) }
-	return $self->{providerName};
+
+	if(not ref($selforClassname)) # param isn't a reference, must be a static call
+	{ # if  $self is not a reference, it must be a class (class access)
+		my $varName = $selforClassname.'::providerName';
+		no strict "refs"; 	
+		return $$varName;
+	}
+
+	if ($providerName) { $selforClassname->{providerName} = Tools::trim($providerName) }
+
+	return $selforClassname->{providerName};
+}
+
+# Static or instance call, returns an array of available dataSources
+# modules
+sub availableDataSourcesLookups{
+	my @dataSourcesLookupModules;
+	foreach my $myModule(findallmod DataSource) {
+		if($myModule =~ /.*Lookup/ ) {
+			eval("use $myModule");
+			push @dataSourcesLookupModules, $myModule;
+		}
+	}
+	return @dataSourcesLookupModules;
 }
 
 # Returns an array of all supported LookupItems
@@ -125,11 +162,17 @@ sub getLookupItemsByCriteriasAndValuesHashRef {
 
 # Returns LookupItems known by the lookupData
 sub supportedLookupItems {
-	my $self = shift;	# XXX: ignore calling class/object
-	my $varName = ref($self).'::supportedLookupItems';
-# Commenting out as retrievalParams is read-only
-#	$self->{retrievalParams} = shift if @_;
-#	die $className;
+	my $selforClassname = shift;	# XXX: ignore calling class/object
+	my $varName;
+
+	if(ref($selforClassname)) { # param is a reference, trying "access by instance"
+		$varName = ref($selforClassname).'::supportedLookupItems';
+	} 
+	else 
+	{ # if  $self is not a reference, it must be a class (class access)
+		$varName = $selforClassname.'::supportedLookupItems';
+	}
+
 	no strict "refs"; 	
 	return $$varName;
 }
@@ -254,8 +297,12 @@ sub setLookupItemByName {
 			return 0;
 		}
 		
+
+	# Old version, where all item properties was copied (and serialized)
 		# copy the returned supported item in a new element
-		my %newItem = %{$foundItems->[0]};
+		# my %newItem = %{$foundItems->[0]};
+	# It seems like a better idea to just use name/value and keep details in lookup data
+		my %newItem = ( 'name', $paramName);
 		# and add it to the item in the LookupData
 		$self->addLookupItem(\%newItem);
 		$itemToSet = \%newItem;
@@ -266,8 +313,44 @@ sub setLookupItemByName {
 	}
 	
 	# update item value from its name
-	$itemToSet->{$paramName} = $paramValue;
+	$itemToSet->{value} = $paramValue;
 	return 1;
+}
+
+sub albumFile {
+	my $self = shift;
+	my $albumFile = shift;
+	
+	# If there's no parameter in the input, it's a GET
+	unless($albumFile) {
+		#if there is already an object
+		if (ref($self->{-albumFile}) eq 'DataFile::AlbumFile') {
+			# return It
+			return $self->{-albumFile};
+		}else { # create a new empty object of this type
+			$self->{-albumFile}= DataFile::AlbumFile->new();
+		}
+	}
+	# There's a parameter in input, it's a SET
+	if (ref($albumFile) eq 'DataFile::AlbumFile') { 
+		$self->{-albumFile}= $albumFile; 
+	}
+	elsif($albumFile){  # We only insert objects of the good type
+		ERROR('Object ->-albumFile called with an unexpected parameter '.ref($albumFile).' waiting a DataFile::AlbumFile');
+	}
+	# Return the set object
+	return $self->{-albumFile};
+}
+
+sub deserialize{
+	my $self = shift or return undef;
+	
+	if(exists($self->{lookupItems}) and exists($self->{lookupItems}{lookupItem}) ) {
+		unless(ref($self->{lookupItems}{lookupItem}) eq 'ARRAY') {
+			my $lookupItemsArray=$self->{lookupItems}{lookupItem};
+			push @{$self->{lookupItems}{lookupItem}=[]}, $lookupItemsArray;
+		}
+	}
 }
 
 #sub lookupData {

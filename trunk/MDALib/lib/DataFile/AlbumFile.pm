@@ -82,8 +82,13 @@ sub deserialize {
 #		XMLDecl       => "<?xml version='1.0'?>",
 	);
 
+	if(exists($toto->{lookupData})) {
+		ERROR("Old lookupData element present, you have to edit it manually");
+		die;
+	}
 	$self->{lookupData} = $toto->{lookupData} ;
 
+	# Deserialize dataSources element, transform single element in one element array
 	if(exists($toto->{dataSources}) and exists($toto->{dataSources}{dataSource}) ) {
 		unless(ref($toto->{dataSources}{dataSource}) eq 'ARRAY') {
 			my $dataSource=$toto->{dataSources}{dataSource};
@@ -91,8 +96,10 @@ sub deserialize {
 		}
 	}
 
+	# Add normalized array to the object dataSource
 	$self->dataSources($toto->{dataSources}{dataSource});
-	
+
+	# Bless each dataSource existing (blessObject calls associated "deserialize" method)
 	foreach my $dataSource (@{$self->dataSources()}) {
 		#Tools::blessObject('DataFile::DataSource', $dataSource);
 		# to deserialize, this module must know the reader class
@@ -100,6 +107,28 @@ sub deserialize {
 		eval("use  ".$dataSource->{class});
 		Tools::blessObject($dataSource->{class}, $dataSource);
 		$dataSource->albumFile($self);
+	}
+	
+
+	# Deserialize lookupDatas element, transform single element in one element array
+	if(exists($toto->{lookupDatas}) and exists($toto->{lookupDatas}{lookupData}) ) {
+		unless(ref($toto->{lookupDatas}{lookupData}) eq 'ARRAY') {
+			my $lookupData=$toto->{lookupDatas}{lookupData};
+			push @{$toto->{lookupDatas}{lookupData}=[]}, $lookupData;
+		}
+	}
+
+	# Add normalized array to the object lookupData
+	$self->lookupDatas($toto->{lookupDatas}{lookupData});
+
+	# Bless each dataSource existing (blessObject calls associated "deserialize" method)
+	foreach my $lookupData (@{$self->lookupDatas()}) {
+		#Tools::blessObject('DataFile::DataSource', $dataSource);
+		# to deserialize, this module must know the reader class
+		print("LOOKUPDATA: ",$lookupData->{class}, "\n");
+		eval("use  ".$lookupData->{class});
+		Tools::blessObject($lookupData->{class}, $lookupData);
+		$lookupData->albumFile($self);
 	}
 }
 

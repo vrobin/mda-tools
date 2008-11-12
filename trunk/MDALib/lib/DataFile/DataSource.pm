@@ -12,6 +12,7 @@ use DataFile::Picture;
 use Tools;
 
 use Log::Log4perl qw(:easy);
+use Module::Find;
 use YAML::Syck;
 
 sub new {
@@ -45,6 +46,19 @@ sub new {
 
 sub parent {
 	return albumFile(@_);
+}
+
+# Static or instance call, returns an array of available dataSources
+# modules
+sub availableDataSources{
+	my @dataSourcesModules;
+	foreach my $myModule(findallmod DataSource) {
+		if($myModule =~ /.*Reader/ ) {
+			eval("use $myModule");
+			push @dataSourcesModules, $myModule;
+		}
+	}
+	return @dataSourcesModules;
 }
 
 #sub albumFile {
@@ -358,18 +372,35 @@ sub addComposer {
 	push @{$self->{composers}{composer}}, $composer;
 }
 
+# providerName element accessor, returns or set providerName
 sub providerName {
-	my $self = shift;
+	my $selforClassname = shift;
 	my $providerName   = shift;
-	if ($providerName) { $self->{providerName} = Tools::trim($providerName) }
-	return $self->{providerName};
+
+	if(not ref($selforClassname)) # param isn't a reference, must be a static call
+	{ # if  $self is not a reference, it must be a class (class access)
+		my $varName = $selforClassname.'::providerName';
+		no strict "refs"; 	
+		return $$varName;
+	}
+
+	if ($providerName) { $selforClassname->{providerName} = Tools::trim($providerName) }
+
+	return $selforClassname->{providerName};
 }
 
+# name element accessor, returns or set name
 sub name {
-	my $self = shift;
+	my $selforClassname = shift;
 	my $name   = shift;
-	if ($name) { $self->{name} = Tools::trim($name) }
-	return $self->{name};
+	if(not ref($selforClassname)) # param isn't a reference, must be a static call
+	{ # if  $self is not a reference, it must be a class (class access)
+		my $varName = $selforClassname.'::DataSourceName';
+		no strict "refs"; 	
+		return $$varName;
+	}
+	if ($name) { $selforClassname->{name} = Tools::trim($name) }
+	return $selforClassname->{name};
 }
 
 sub class {
@@ -379,11 +410,20 @@ sub class {
 	return $self->{class};
 }
 
+# providerUrl element accessor, returns or set providerUrl
 sub providerUrl {
-	my $self = shift;
+	my $selforClassname = shift;
 	my $providerUrl   = shift;
-	if ($providerUrl) { $self->{providerUrl} = Tools::trim($providerUrl) }
-	return $self->{providerUrl};
+
+	if(not ref($selforClassname)) # param isn't a reference, must be a static call
+	{ # if  $self is not a reference, it must be a class (class access)
+		my $varName = $selforClassname.'::providerUrl';
+		no strict "refs"; 	
+		return $$varName;
+	}
+	
+	if ($providerUrl) { $selforClassname->{providerUrl} = Tools::trim($providerUrl) }
+	return $selforClassname->{providerUrl};
 }
 
 sub version {
