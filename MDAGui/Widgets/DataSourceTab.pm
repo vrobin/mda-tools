@@ -52,7 +52,8 @@ sub showSubFrame {
 #	return;
 #	my $frameHashKey =  shift().'FrameW';
 #	Tkx::grid("remove", $self->{$frameHashKey});
-	$self->subFrame($frameToShowName)->g_grid(-columnspan => 2, -row=>1, -column=>0,  -sticky => 'nesw'); 
+	$self->subFrame($frameToShowName)->g_grid(-columnspan => 2, -row=>1, -column=>0,  -sticky => 'nesw');
+	print(Dumper($self));
 }
 
 

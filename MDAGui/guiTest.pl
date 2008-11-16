@@ -12,10 +12,11 @@ use version; our $VERSION = qw('0.0.1);
 use Tkx;
 #use Tk::DirSelect;
 use Log::Log4perl qw(:easy);
+use Widgets::Toolbar;
+use Widgets::DataSourcesNotebook;
 use Widgets::DirExplorerTree;
 use Data::Dumper;
 use Module::Find;
-use Widgets::DataSourcesNotebook;
 
 Tkx::package("require", "treectrl");
 Tkx::package("require", "tile");
@@ -100,6 +101,11 @@ my $button = $mw->new_ttk__button(
 ## in class # my $tree = $panedWindow->new_treectrl();
 $Tkx::TRACE='true';
 #die Tkx::i::call("info", 'library');
+
+my $toolbar=Widgets::Toolbar->new();
+$toolbar->parentWindow($mw);
+$toolbar->init();
+
 my $dirTree=DirExplorerTree->new();
 $dirTree->parentWindow($panedWindow);
 $dirTree->init();
