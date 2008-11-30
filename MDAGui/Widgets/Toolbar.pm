@@ -120,7 +120,7 @@ sub init {
 	# Configure main tab frame row/column expansion for show/hide of subframes
 #	Tkx::grid("columnconfigure", $self->widget(), 0, -weight => 1);
 #	Tkx::grid("rowconfigure", $self->widget(), 1, -weight => 1);
-	$self->{widget}->g_pack(-anchor => 'nw', -expand => 1, -fill=>'x');
+	$self->{widget}->g_pack(-anchor => 'nw', -expand => 'false', -fill=>'x');
 
 }
 

@@ -136,7 +136,7 @@ $dsNotebook->init();
 # TODO: clean this call, transform this method in specific object
 #createRightNotebookTabs($rightNotebookWindow, @MDAReaderModules);
 #createRightNotebookTabsGridForget($rightNotebookWindow, @MDAReaderModules);
-$panedWindow->add($dirTree->tree, -weight => 2);
+$panedWindow->add($dirTree->widget(), -weight => 2);
 $panedWindow->add($dsNotebook->widget, -weight => 4);
 # $panedWindow->add($rightLabelFrame, -weight => 4);
 $panedWindow->g_pack(-fill => "both", -expand => "yes");
@@ -285,45 +285,13 @@ sub createRightNotebookTabsGridForget {
 								$providerPages->{retrievedFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw'); 
 							}
 				);
-		#$providerPagesW->compute___size();
 Tkx::grid("columnconfigure", $providerRootFrameW, 0, -weight => 1);
 Tkx::grid("columnconfigure", $providerRootFrameW, 1, -weight => 1);
 Tkx::grid("rowconfigure", $providerRootFrameW, 0, -weight => 1);
-#Tkx::grid("columnconfigure", $gridFrameW, 1, -weight => 1);
-#Tkx::grid("rowconfigure", $providerRootFrameW, 1, -weight => 1);
 		$providerPages->{retrievedFrameW}->g_grid(-columnspan => 2, -sticky => 'nsew');
-#		Tkx::grid("remove", $providerPages->{retrievedFrameW});
-#		$providerPages->{inputFrameW}->g_grid(  -sticky => 'nesw');
-#		Tkx::grid("remove", $providerPages->{inputFrameW});
-#		$providerPages->{retrievedFrameW}->g_grid(-sticky => 'nsew');
 		$bouton->g_grid(-row=>1, -column=>0);
 		$bouton2->g_grid(-row=>1, -column=>1);
-#		$providerPages->{retrievedFrameW}->g_grid($providerPages->{inputFrameW}, -sticky => 'nesw', -in => $gridFrameW);
-#$providerRootFrameW->g_pack(-fill => 'both', -expand => 'true');
-
-#		$gridFrameW->g_grid(-row=>0, -column=>0, -sticky => 'nsew', -ipadx=>50, -padx=>50);
-#		$gridFrameW->g_pack(-fill => 'both', -expand => 'true' );
-#		die $gridFrameW->g_pack('info');
-		#$gridFrameW->{inputFrameW}->g_grid(-anchor => 'nw',  -fill => 'both', -expand => 'true');
-#		$providerPagesW->g_pack(-anchor => 'nw',  -fill => 'both', -expand => 'true');
-#		$providerPages->{inputFrameW}->g_pack();
-#		$providerPages->{retrievedFrameW}->g_pack();
-		
-#		my $providerRootFrame = $mdaSourcePanel{$provider}{rootFrame};
-#		my $providerRootFrameW = $mdaSourcePanel{$provider}{rootFrameW};
-#		my $providerPagesW =$providerRootFrame->{PagesManagerW};
-#		my $providerPages =$providerRootFrame->{PagesManager};
-#		$providerPagesW = $providerRootFrameW->new_PagesManager();
-#		$providerPagesW->add("lookup");
-#		$providerPages->{lookupFrameW}=Tkx::widget->new($providerPagesW->getframe("lookup"));
-#		$providerPagesW->add("result");
-#		$providerPages->{resultFrameW}=Tkx::widget->new($providerPagesW->getframe("result"));
-#		$providerPagesW->add("input");
-#		$providerPages->{inputFrameW}=Tkx::widget->new($providerPagesW->getframe("input"));
-#		$providerPagesW->add("retrieved");
-#		$providerPages->{retrievedFrameW}=Tkx::widget->new($providerPagesW->getframe("retrieved"));
 	}
-#	die Dumper \%mdaSourcePanel;
 }
 
 
@@ -352,6 +320,40 @@ Tkx::MainLoop();
 ###############################
 ### Junk code graveyard #######
 ###############################
+		#$providerPagesW->compute___size();
+#Tkx::grid("columnconfigure", $gridFrameW, 1, -weight => 1);
+#Tkx::grid("rowconfigure", $providerRootFrameW, 1, -weight => 1);
+#		Tkx::grid("remove", $providerPages->{retrievedFrameW});
+#		$providerPages->{inputFrameW}->g_grid(  -sticky => 'nesw');
+#		Tkx::grid("remove", $providerPages->{inputFrameW});
+#		$providerPages->{retrievedFrameW}->g_grid(-sticky => 'nsew');
+#		$providerPages->{retrievedFrameW}->g_grid($providerPages->{inputFrameW}, -sticky => 'nesw', -in => $gridFrameW);
+#$providerRootFrameW->g_pack(-fill => 'both', -expand => 'true');
+
+#		$gridFrameW->g_grid(-row=>0, -column=>0, -sticky => 'nsew', -ipadx=>50, -padx=>50);
+#		$gridFrameW->g_pack(-fill => 'both', -expand => 'true' );
+#		die $gridFrameW->g_pack('info');
+		#$gridFrameW->{inputFrameW}->g_grid(-anchor => 'nw',  -fill => 'both', -expand => 'true');
+#		$providerPagesW->g_pack(-anchor => 'nw',  -fill => 'both', -expand => 'true');
+#		$providerPages->{inputFrameW}->g_pack();
+#		$providerPages->{retrievedFrameW}->g_pack();
+		
+#		my $providerRootFrame = $mdaSourcePanel{$provider}{rootFrame};
+#		my $providerRootFrameW = $mdaSourcePanel{$provider}{rootFrameW};
+#		my $providerPagesW =$providerRootFrame->{PagesManagerW};
+#		my $providerPages =$providerRootFrame->{PagesManager};
+#		$providerPagesW = $providerRootFrameW->new_PagesManager();
+#		$providerPagesW->add("lookup");
+#		$providerPages->{lookupFrameW}=Tkx::widget->new($providerPagesW->getframe("lookup"));
+#		$providerPagesW->add("result");
+#		$providerPages->{resultFrameW}=Tkx::widget->new($providerPagesW->getframe("result"));
+#		$providerPagesW->add("input");
+#		$providerPages->{inputFrameW}=Tkx::widget->new($providerPagesW->getframe("input"));
+#		$providerPagesW->add("retrieved");
+#		$providerPages->{retrievedFrameW}=Tkx::widget->new($providerPagesW->getframe("retrieved"));
+#	die Dumper \%mdaSourcePanel;
+
+
 #my $labx1 = $panedWindow->new_ttk__label( -text => "Bapy", -foreground => "orange" , -background=>"black");
 
 #my $dirTree = Tkx::tk___chooseDirectory(-initialdir => ".");
