@@ -22,16 +22,16 @@ our $supportedLookupItems = [
 #		displayName => 'Album Id'
 #	}
 	{
-		type 	=> 'retrieval',
+		type 			=> 'retrieval',
 		targetElement 	=> 'album',
-		displayName => 'Album Id',
-		name => 'albumId'
+		displayName 	=> 'Album Id',
+		name 			=> 'albumId'
 	},
 	{
-		type 	=> 'retrieval',
+		type 			=> 'retrieval',
 		targetElement 	=> 'album',
-		displayName => 'Album Url',
-		name => 'albumUrl'
+		displayName 	=> 'Album Url',
+		name 			=> 'albumUrl'
 	}
 ];
 
