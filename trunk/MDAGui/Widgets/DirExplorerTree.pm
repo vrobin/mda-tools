@@ -22,7 +22,7 @@ use File::Next;
 use File::Spec;
 #use File::Util;
 use Log::Log4perl qw(:easy);
-
+use Tkx;
 
 my @mediaExtensions = ('ape', 'wav', 'flac', 'mp3', 'wv', 'aiff');
 my @folderItems;
@@ -44,10 +44,80 @@ sub new {
 	return $self;
 }
 
+sub setScrollBar {
+	my $scrollbar = shift;
+	my $first = shift;
+	my $last = shift;
+    if ($first <= 0 && $last >= 1) {
+		Tkx::grid('remove', $scrollbar);
+    } else {
+	Tkx::grid($scrollbar);
+    }
+    Tkx::i::call($scrollbar, 'set', $first, $last);
+    return
+}
+
 # Initialize the tree
 sub init {
 	my $self = shift;
-	$self->tree($self->parentWindow()->new_treectrl());
+	$self->widget($self->parentWindow()->new_ttk__frame());
+	$self->tree($self->widget()->new_treectrl(
+			-scrollmargin => 16, 
+			-xscrollincrement => 20, 
+			-xscrolldelay => "500 50", 
+			-yscrolldelay => "500 50"
+		)
+	);
+	
+	$self->tree()->debug('configure', -enable => 'false', -display => 'true', 
+		-erasecolor => 'pink',
+		-drawcolor => 'orange',
+		-displaydelay => 30,
+		-textlayout => 0,
+		-data => 0,
+		-span => 0
+	);
+
+	$self->yscrollbar( $self->widget()->new_ttk__scrollbar(-orient => 'vertical', -command => sub { splice(@_,0,3); $self->tree()->yview(@_); }));
+
+	$self->tree()->notify("bind", $self->yscrollbar(), "<Scroll-y>", [
+       sub {
+       	my $widgetScrollbar = shift;
+       	my $lower = shift;
+       	my $upper = shift;
+       	setScrollBar($widgetScrollbar, $lower, $upper);
+       },    Tkx::Ev("%W", "%l", "%u" )]);   
+
+	$self->yscrollbar()->g_bind("<ButtonPress-1>", sub { $self->tree()->g_focus() } );
+
+	$self->xscrollbar( $self->widget()->new_ttk__scrollbar(-orient => 'horizontal', -command => sub { splice(@_,0,3); $self->tree()->xview(@_); }));
+
+	$self->tree()->notify("bind", $self->xscrollbar(), "<Scroll-x>", [
+       sub {
+       	my $widgetScrollbar = shift;
+       	my $lower = shift;
+       	my $upper = shift;
+       	setScrollBar($widgetScrollbar, $lower, $upper);
+       },    Tkx::Ev("%W", "%l", "%u" )]);   
+
+	$self->xscrollbar()->g_bind("<ButtonPress-1>", sub { $self->tree()->g_focus() } );
+
+
+
+#	$self->tree()->new_ttk__scrollbar(-orient => 'horizontal', -command => sub { $self->tree()->xview(); });
+
+	Tkx::grid("columnconfigure", $self->widget(), 0, -weight => 1);
+	Tkx::grid("rowconfigure", $self->widget(), 0, -weight => 1);
+    Tkx::grid("configure", $self->tree(), -row => 0,  -column => 0,  -sticky => 'news');
+#	$self->tree()->g_grid(-row => 0,  -column => 0,  -sticky => 'news');
+    Tkx::grid("configure", $self->yscrollbar(), -row => 0, -column => 1, -sticky => 'ns');
+#	$self->yscrollbar()->g_grid(-row => 0, -column => 1, -sticky => 'we');
+    Tkx::grid("configure", $self->xscrollbar(), -row => 1, -column => 0, -sticky => 'we');
+#	$self->tree()->new_ttk__scrollbar();
+	
+#	$self->yscrollbar()->g_pack(-side =>'right',  -fill => 'y' );
+#	$self->tree()->g_pack(-side =>'right',  -fill => 'both', -expand => 'true' );
+	
 	# use local $tree variable to prevent multiple tree getter calls
 	my $tree=$self->tree();
 
@@ -601,6 +671,33 @@ sub tree {
 		$self->{tree} =  $tree;
 	}
 	return $self->{tree};
+}
+
+sub widget {
+	my $self = shift;
+	my $widget = shift;
+	if (defined $widget) {
+		$self->{widget} =  $widget;
+	}
+	return $self->{widget};
+}
+
+sub yscrollbar {
+	my $self = shift;
+	my $yscrollbar = shift;
+	if (defined $yscrollbar) {
+		$self->{yscrollbar} =  $yscrollbar;
+	}
+	return $self->{yscrollbar};
+}
+
+sub xscrollbar {
+	my $self = shift;
+	my $xscrollbar = shift;
+	if (defined $xscrollbar) {
+		$self->{xscrollbar} =  $xscrollbar;
+	}
+	return $self->{xscrollbar};
 }
 
 1;
