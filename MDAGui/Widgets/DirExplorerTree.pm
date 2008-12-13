@@ -48,10 +48,14 @@ sub setScrollBar {
 	my $scrollbar = shift;
 	my $first = shift;
 	my $last = shift;
-    if ($first <= 0 && $last >= 1) {
+	
+    if ($first <= 0 && $last >= 1) 
+    {
 		Tkx::grid('remove', $scrollbar);
-    } else {
-	Tkx::grid($scrollbar);
+    } 
+    else 
+    {
+		Tkx::grid($scrollbar);
     }
     Tkx::i::call($scrollbar, 'set', $first, $last);
     return
@@ -62,7 +66,7 @@ sub init {
 	my $self = shift;
 	$self->widget($self->parentWindow()->new_ttk__frame());
 	$self->tree($self->widget()->new_treectrl(
-			-scrollmargin => 16, 
+			-scrollmargin => 16, -relief => 'groove', -borderwidth => 1,
 			-xscrollincrement => 20, 
 			-xscrolldelay => "500 50", 
 			-yscrolldelay => "500 50"
@@ -267,6 +271,61 @@ my $tutu = $self->parentWindow();
           $self->_addSubFolders($i);
           return $i;
        },    Tkx::Ev("%T", "%I", "%e", "%d")]);
+
+	# To prevent item change while an unsaved mda file is active
+	# we must control the default binding of treectrl
+	Tkx::i::call("bind", "TreeCtrl", "<ButtonPress-1>", [
+		sub {
+			my $w = shift;
+			my $x = shift;
+			my $y = shift;
+			
+			# if boolean returns true, we can change the active item 
+			# so the default handler is called
+			if( GuiOrchestrator::fireBooleanEvent('beforeDirectoryChange') ) {
+				# this is the default behaviour of TreeCtrl
+				Tkx::i::call("TreeCtrl::ButtonPress1", $w, $x, $y);
+			}
+			return;
+       },    Tkx::Ev("%W", "%x", "%y")]
+	);
+
+#   print Dumper($tree->g_bind("<ButtonPress-1>"));
+# list all default binding of treectrl
+#	print Dumper(Tkx::i::call("bind", "TreeCtrl"));
+# list code of default binding for ButtonPress 1 event
+#	print Dumper(Tkx::i::call("bind", "TreeCtrl", "<ButtonPress-1>"));
+
+
+#	$tree->g_bind( "<ButtonPress-1>", [
+#		sub {
+#       	   my $t = shift;
+#           my $event = shift;
+#           my $detail = shift;
+#           my $absoluteX = shift;
+#           my $absoluteY = shift;
+#           my $relativeX = shift;
+#           my $relativeY = shift;
+#           #print("ITEMITEM: ".$tree->item("text", "nearest $relativeX $relativeY" ));
+##			$self->_selectNearestItem($relativeX, $relativeY);
+#			print "BOUYAAAHHHH at ".Dumper($event)." - $t - e: $event - d: $detail  x: $absoluteX   y: $absoluteY\n";
+##         	Tkx::tk___popup($self->_buildFolderPopupMenu(), $absoluteX, $absoluteY);
+#			#Tkx::i::call("break");
+#			return;
+#       },    Tkx::Ev("%T", "%e", "%d", "%X", "%Y", "%x", "%y")]
+#	);
+ 	$tree->m_notify("bind", $tree, "<ActiveItem>", [
+       sub {
+       	   my $t = shift;
+           my $newItem = shift;
+           my $previousItem = shift;
+           my $event = shift;
+           my $detail = shift;
+          #print "Clicked at ".$newItem." was $previousItem - of tree $t - e: $event - d: $detail\n";
+          GuiOrchestrator::fireEvent('afterDirectoryChanged', $folderItems[$newItem]{folderPath});     
+          return;
+       },    Tkx::Ev("%T", "%c", "%p", "%e", "%d")]);
+       
 	$tree->notify("bind", $tree, "<Expand-after>", [
        sub {
        	my $t = shift;

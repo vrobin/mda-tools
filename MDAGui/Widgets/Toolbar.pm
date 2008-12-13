@@ -70,6 +70,7 @@ sub init {
 		
 		$self->{$picto->{name}.'Image'} = Tkx::image("create", "photo", -file => $picto->{path});
 		my $grayedImage = Tkx::i::call($self->{$picto->{name}.'Image'} , 'data', '-grayscale', -format => 'png');
+
 		$self->{$picto->{name}.'GrayedImage'} = Tkx::image("create", "photo", -format => 'png', -data => $grayedImage );
 
 		$self->{$picto->{name}.'ButtonW'} = $self->widget()->new_ttk__button(
