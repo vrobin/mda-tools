@@ -76,9 +76,9 @@ sub init {
 		$self->{$picto->{name}.'ButtonW'} = $self->widget()->new_ttk__button(
 			-image => [ $self->{$picto->{name}.'Image'}, 
 						'disabled', $self->{$picto->{name}.'GrayedImage'}, 
-						'active', $self->{$picto->{name}.'GrayedImage'} ], 
+						'active', $self->{$picto->{name}.'Image'} ], 
 			-style => 'Toolbar.Toolbutton', 
-			-command => sub {print($picto->{name}."\n");}
+			-command => sub {print($picto->{name}."\n"); GuiOrchestrator::fireEvent('mdaFileChanged');}
 		);
 		$self->{$picto->{name}.'ButtonW'}->g_pack(-side => 'left');	
 	}
@@ -122,7 +122,32 @@ sub init {
 #	Tkx::grid("columnconfigure", $self->widget(), 0, -weight => 1);
 #	Tkx::grid("rowconfigure", $self->widget(), 1, -weight => 1);
 	$self->{widget}->g_pack(-anchor => 'nw', -expand => 'false', -fill=>'x');
+	
+	# register event listeners to modify available buttons according to 
+	# the application state
+	
+	# new file is loaded, no save is allowed until the file has changed
+	GuiOrchestrator::registerEventListener('mdaFileLoaded', sub {return $self->disableButton('save'); } );
+	
+	# current file has changed, the user can now 'save' the file 
+	GuiOrchestrator::registerEventListener('mdaFileChanged', sub {return $self->enableButton('save'); } );
+	
+	# no mda file in folder, there's nothing to save, so disable button
+	GuiOrchestrator::registerEventListener('noMdaFileInFolder', sub {return $self->disableButton('save'); } );
+}
 
+# This sub disable the button which name is passed as a parameter
+sub disableButton {
+	my $self =  shift;
+	my $name =  shift;
+	$self->{$name.'ButtonW'}->m_state('disabled');
+}
+
+# This sub disable the button which name is passed as a parameter
+sub enableButton {
+	my $self =  shift;
+	my $name =  shift;
+	$self->{$name.'ButtonW'}->m_state('!disabled');
 }
 
 sub widget {

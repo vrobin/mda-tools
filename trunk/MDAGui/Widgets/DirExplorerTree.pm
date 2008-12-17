@@ -279,12 +279,24 @@ my $tutu = $self->parentWindow();
 			my $w = shift;
 			my $x = shift;
 			my $y = shift;
+			my $clickedItem = $tree->m_item_id("nearest $x $y");
+			my $activeItem =  $tree->m_item_id("active");
 			
-			# if boolean returns true, we can change the active item 
-			# so the default handler is called
-			if( GuiOrchestrator::fireBooleanEvent('beforeDirectoryChange') ) {
+			# if user click on the active item, do nothing special
+			if($clickedItem == $activeItem) {
+
 				# this is the default behaviour of TreeCtrl
 				Tkx::i::call("TreeCtrl::ButtonPress1", $w, $x, $y);
+
+			} # if event returns true, directory change is allowed
+			elsif(GuiOrchestrator::fireBooleanEvent('beforeDirectoryChange') ) {
+				
+				# this is the default behaviour of TreeCtrl
+				Tkx::i::call("TreeCtrl::ButtonPress1", $w, $x, $y);
+				
+				# We must force clicked item activation for the binded <ActiveItem>
+				# callback to be called and the fire afterDirectoryChanged event
+				$tree->m_activate($clickedItem);
 			}
 			return;
        },    Tkx::Ev("%W", "%x", "%y")]
@@ -321,7 +333,7 @@ my $tutu = $self->parentWindow();
            my $previousItem = shift;
            my $event = shift;
            my $detail = shift;
-          #print "Clicked at ".$newItem." was $previousItem - of tree $t - e: $event - d: $detail\n";
+#          print "Clicked at ".$newItem." was $previousItem - of tree $t - e: $event - d: $detail\n";
           GuiOrchestrator::fireEvent('afterDirectoryChanged', $folderItems[$newItem]{folderPath});     
           return;
        },    Tkx::Ev("%T", "%c", "%p", "%e", "%d")]);
@@ -331,7 +343,8 @@ my $tutu = $self->parentWindow();
        	my $t = shift;
        	my $i = shift;
        	$tree->item("configure", $i, -button => 'yes');
-       },    Tkx::Ev("%T", "%I")]);   
+       },    Tkx::Ev("%T", "%I")]);
+    
 	$tree->m_notify("bind", $tree, "<Collapse-after>", [
        sub {
        	my $t = shift;
@@ -619,6 +632,10 @@ sub _findAndSetFolderItemProperties {
 			#print("File: ");
 			DEBUG ("Found file '$fileInDirFullPath'\n");
 
+			if($fileInDir =~ /^\.?mda.xml$/) {
+				DEBUG("$folderPath contain '$fileInDir' MDA XML file");
+				$tree->item("state", "set", $item, "hasMdaXmlFile");
+			}
 			foreach my $mediaExtension ( @mediaExtensions ) {
 #				print("avant: $mediaExtension  - ".Dumper($mediaExtension));
 #				$mediaExtension =~ s{ ([\\(){}[\]\^\$*+?.|]) }{\\$1}xg;#
@@ -627,10 +644,6 @@ sub _findAndSetFolderItemProperties {
 				if($fileInDir =~ m/^.*\.${mediaExtension}$/i) {
 					DEBUG("$folderPath contain $fileInDir media file");
 					$tree->item("state", "set", $item, "hasMediaFile");
-				}
-				elsif($fileInDir =~ /^\.?mda.xml$/) {
-					DEBUG("$folderPath contain '$fileInDir' MDA XML file");
-					$tree->item("state", "set", $item, "hasMdaXmlFile");
 				}
 			}
 		}else {
