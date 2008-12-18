@@ -47,6 +47,17 @@ sub init {
 	my $self = shift;
 	$self->widget($self->{parentWindow}->new_ttk__notebook());
 	#$rightNotebookWindow = $rightLabelFrame->new_ttk__notebook();
+	Tkx::ttk__style('configure', 'TNotebook' , -tabposition => 'wn', -tabmargins => [2, 2, 0, 2]);
+#	Tkx::ttk__style('configure', 'Notebook.Label' , -space=> 40, , -underline => 1); 
+#	Tkx::ttk__style('configure', 'Notebook.label' , -space=> 40, , -underline => 1);
+#	Tkx::ttk__style('configure', 'TNotebook.label' , -space=> 40, , -underline => 1);
+#	Tkx::ttk__style('configure', 'TNotebook' , -space=> 40, , -underline => 1);
+#	Tkx::ttk__style('configure', 'Notebook.TLabel' , -space=> 40, , -underline => 1);
+#	Tkx::ttk__style('configure', 'Notebook.Tab' , -space=> 40, , -underline => 1);
+#	Tkx::ttk__style('configure', 'Notebook.tab' , -space=> 40, , -underline => 1);
+#	Tkx::ttk__style('configure', 'TNotebook.tab' , -space=> 40, , -underline => 1);
+	Tkx::ttk__style('configure', 'TNotebook.Tab' , -space=> 180, , -underline => 1, -embossed => 1 );
+	
 	Tkx::ttk__style('configure', 'Blue.TFrame',	-background => 'blue', -foreground => 'black', -relief => 'solid');
 	Tkx::ttk__style('configure', 'Blue.TLabel',	-background => 'blue', -foreground => 'yellow', -relief => 'flat');
 	$self->{blankTabWidget} = $self->widget()->new_ttk__frame(-name => 'noMetaData', -style => 'Blue.TFrame');
@@ -67,6 +78,11 @@ sub init {
 		$tab->init();
 		push @{$self->{tabs}}, $tab;
 	}
+
+# List elements children of notebook (contains tabs)
+#	die(Dumper(Tkx::i::call('winfo', 'children', $self->widget())));
+# Get tab list in real order
+#	die(Dumper($self->widget()->m_tabs()));
 }
 
 sub parentWindow {

@@ -113,6 +113,7 @@ sub isChangeDirectoryAllowed {
 	    }
 	    if($returnvalue =~ /yes/) {
 # TODO: save MDA File
+			albumFile()->serialize(currentMdaFile());
 			# file is saved, directory change is allowed with 'return 1' below
 	    }
 	    if($returnvalue =~ /no/) {
