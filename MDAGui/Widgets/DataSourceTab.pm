@@ -133,6 +133,9 @@ sub init {
 	# Creation of the main frame called "<lc_sourceName>Tab" (ex: .p.n.amgTab )
 	$self->widget( $self->parentWindow()->new_ttk__frame(-name => $tabId));
 	$self->parentWindow()->m_add($self->widget(), -text => $tabName, -state => 'normal');
+# TODO: remove this test
+	my $picto = Tkx::image("create", "photo", -file => 'graphics/music.png');
+	print('XXXXXXXXXXX ', Dumper($self->parentWindow()->m_tab(0, -image => $picto, -compound => 'left', -text => 'TTUTU')));
 	
 #	$self->{actions} = {
 #		setSearchParams  =>  { name => 'Search', method=>'', paramList=>'' },

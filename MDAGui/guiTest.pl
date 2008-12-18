@@ -116,6 +116,18 @@ my $button = $mw->new_ttk__button(
 $Tkx::TRACE='false';
 #die Tkx::i::call("info", 'library');
 
+print "TNotebook layout options: \n", Dumper(Tkx::i::call('style', 'layout', 'TNotebook')), "\n";
+print "TNotebook.Tab layout options: \n", Dumper(Tkx::i::call('style', 'layout', 'TNotebook.Tab')), "\n";
+#print "TNotebook.Label layout options: \n", Dumper(Tkx::i::call('style', 'layout', 'TNotebook.Label')), "\n";
+print "notebook element options: \n", Dumper(Tkx::i::call('style', 'element', 'options', 'Notebook')), "\n";
+print "notebook.client element options: \n", Dumper(Tkx::i::call('style', 'element', 'options', 'Notebook.client')), "\n";
+print "notebook.tab element options: \n", Dumper(Tkx::i::call('style', 'element', 'options', 'Notebook.tab')), "\n";
+print "notebook.label element options: \n", Dumper(Tkx::i::call('style', 'element', 'options', 'Notebook.label')), "\n";
+print "notebook.focus element options: \n", Dumper(Tkx::i::call('style', 'element', 'options', 'Notebook.focus')), "\n";
+print "notebook.padding element options: \n", Dumper(Tkx::i::call('style', 'element', 'options', 'Notebook.padding')), "\n";
+#print "notebook.client element options: ", Tkx::i::call('style', 'element', 'options', 'Notebook.client'), "\n";
+#die
+
 my $toolbar=Widgets::Toolbar->new();
 $toolbar->parentWindow($mw);
 $toolbar->init();
