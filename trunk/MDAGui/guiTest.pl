@@ -153,11 +153,12 @@ sub findMDAReaderModules{
 }
 
 #my @MDAReaderModules = findMDAReaderModules();
-my @MDAReaderModules = DataFile::LookupData::availableDataSourcesLookups();
+my @MDALookupModules = DataFile::LookupData::availableDataSourcesLookups();
+my @MDADataSourcesModules = DataFile::DataSource::availableDataSources();
 
 my $dsNotebook = Widgets::DataSourcesNotebook->new();
 $dsNotebook->parentWindow( $panedWindow );
-$dsNotebook->sources(\@MDAReaderModules);
+$dsNotebook->sources(\@MDADataSourcesModules);
 $dsNotebook->init();
 # TODO: clean this call, transform this method in specific object
 #createRightNotebookTabs($rightNotebookWindow, @MDAReaderModules);

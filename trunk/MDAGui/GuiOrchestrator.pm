@@ -20,8 +20,8 @@ use Data::Dumper;
 use Log::Log4perl qw(:easy);
 use DataFile::AlbumFile;
 
-our $currentDir = undef;
-our $currentMdaFile = undef;
+our $currentDir = '';
+our $currentMdaFile = '';
 our $albumFile = undef;
 
 
@@ -135,7 +135,7 @@ sub directoryChanged {
 	DEBUG("New directory: $newDirectory\n");
 	
 	# Save current directory
-	currentDir($newDirectory);
+	GuiOrchestrator->currentDir($newDirectory);
 	
 	# the directory has changed, undefine mdaFile related variables
 	undef($currentMdaFile);
@@ -191,7 +191,7 @@ sub fireBooleanEvent {
 	my $result = 1;
 	foreach my $callback (@{$eventListeners->{$event}}) {
 		#die Dumper($callback);
-		$result = $result && $callback->(@_);		
+		$result = $callback->(@_) && $result;		
 	}
 	return $result;
 }
