@@ -75,7 +75,7 @@ sub init {
 		print $source->name(),"\n";
 		my $tab = Widgets::DataSourceTab->new();
 		$tab->parentWindow($self->widget());
-		$tab->source($source);
+		$tab->sourcePackage($source);
 		$tab->init();
 		push @{$self->{tabs}}, $tab;
 	}

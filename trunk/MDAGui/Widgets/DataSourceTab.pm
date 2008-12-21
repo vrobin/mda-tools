@@ -129,8 +129,8 @@ sub createRadioPanel {
 # Create the content of a DataSource Tab
 sub init {
 	my $self = shift;
-	my $tabName = $self->source()->providerName();
-	my $tabId = lc($self->source()->name()).'Tab';
+	my $tabName = $self->sourcePackage()->providerName();
+	my $tabId = lc($self->sourcePackage()->name()).'Tab';
 	
 	# Creation of the main frame called "<lc_sourceName>Tab" (ex: .p.n.amgTab )
 	$self->widget( $self->parentWindow()->new_ttk__frame(-name => $tabId));
@@ -146,15 +146,15 @@ sub init {
 	# all frames without check of the DataSource capabilities
 	#$self->{subFramesNames} = ['Lookup', 'Result', 'Retrieval Input', 'Retrieved'];
 	# create sub frames
-	if(defined($self->lookup)) {
+	if(defined($self->lookupPackage)) {
 		my $foundItems;
 
-		$foundItems = $self->lookup->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'lookup', }); 
+		$foundItems = $self->lookupPackage->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'lookup', }); 
 		if(defined($foundItems) and $foundItems > 0) {
 			push(@{$self->{subFramesNames}}, ('Lookup', 'Result'));
 		};
 		
-		$foundItems = $self->lookup->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'retrieval', });
+		$foundItems = $self->lookupPackage->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'retrieval', });
 		if(defined($foundItems) and $foundItems > 0) {
 			push(@{$self->{subFramesNames}}, ('Retrieval Input', 'Retrieved'));
 		};
@@ -207,9 +207,9 @@ sub createInputSubFrameContent {
 	# the widget content HashRef
 	my $content = $self->subFrameContent('Retrieval Input');
 
-	if(defined($self->lookup))
+	if(defined($self->lookupPackage))
 	{
-		my $retrievalItems = $self->lookup->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'retrieval', targetElement => 'album',});
+		my $retrievalItems = $self->lookupPackage->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'retrieval', targetElement => 'album',});
 		
 		foreach my $item (@{$retrievalItems}) {
 			$content->{$item->{name}.'LabelW'} = $widget->new_ttk__label( -text => $item->{displayName}.':');
@@ -239,24 +239,24 @@ sub widget {
 	return $self->{widget};
 }
 
-sub source {
+sub sourcePackage {
 	my $self = shift;	# XXX: ignore calling class/object
 	if(@_) {
-		my $source = shift;
-		$self->{source} = $source;
-		$self->{lookup} = $source->lookupClass();
+		my $sourcePackage = shift;
+		$self->{sourcePackage} = $sourcePackage;
+		$self->{lookupPackage} = $sourcePackage->lookupClass();
 	}
-	return $self->{source};
+	return $self->{sourcePackage};
 }
 
-sub lookup {
+sub lookupPackage {
 	my $self = shift;	# XXX: ignore calling class/object
 	if(@_) {
-		my $lookup = shift;
-		$self->{lookup} = $lookup;
-		$self->{source} = $lookup->readerClass();
+		my $lookupPackage = shift;
+		$self->{lookupPackage} = $lookupPackage;
+		$self->{sourcePackage} = $lookupPackage->readerClass();
 	}
-	return $self->{lookup};
+	return $self->{lookupPackage};
 }
 
 

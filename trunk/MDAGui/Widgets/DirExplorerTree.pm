@@ -279,11 +279,29 @@ my $tutu = $self->parentWindow();
 			my $w = shift;
 			my $x = shift;
 			my $y = shift;
+			
 			my $clickedItem = $tree->m_item_id("nearest $x $y");
 			my $activeItem =  $tree->m_item_id("active");
 			
+			# we must identify 'button' click to prevent sending false 'directoryChanged'
+			my @identifyElements = split(/ /, $tree->m_identify("$x", "$y"));
+
+			# identify returns:
+			# 'item', '21', 'button'
+			# 'item', '21'
+			# 'item', '21', 'column', '1'
+			# 'item', '21', 'column', '0', 'elem', 'folderTxt';
+			# 'item', '21', 'column', '0', 'elem', 'elemImg';
+
+			# if user clicked on an expand/collapse button
+			if(scalar(@identifyElements) == 3 and $identifyElements[2] eq 'button' ) {
+
+				# this is the default behaviour of TreeCtrl
+				Tkx::i::call("TreeCtrl::ButtonPress1", $w, $x, $y);
+		
+			}			
 			# if user click on the active item, do nothing special
-			if($clickedItem == $activeItem) {
+			elsif($clickedItem == $activeItem) {
 
 				# this is the default behaviour of TreeCtrl
 				Tkx::i::call("TreeCtrl::ButtonPress1", $w, $x, $y);

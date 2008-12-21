@@ -167,7 +167,7 @@ sub directoryChanged {
 
 				# load this new DataFile object with the found mda.xml file
 				$albumFile->deserialize(currentMdaFile());
-				
+				print(Dumper($albumFile));
 				# MDA File has been loaded, so it hasn't changed yet 
 				$fileChanged = 0;
 				
