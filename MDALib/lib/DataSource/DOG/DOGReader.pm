@@ -19,6 +19,7 @@ our $DataSourceName = 'DOG';
 our $DataSourceVer = '0.1';
 our $providerName ='Discogs';
 our $providerUrl ='http://www.discogs.com';
+our $lookupClass = 'DataSource::DOG::DOGLookup';
 
 #search query
 # http://www.discogs.com/search?type=<type>&q=<querystring>&f=xml&api_key=<api_key>

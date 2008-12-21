@@ -49,7 +49,8 @@ use List::Util qw(min max);
 our $DataSourceName = 'MY';
 our $DataSourceVer = '0.1';
 our $providerName ='MY Reader';
-our $providerUrl =undef;
+our $providerUrl = undef;
+our $lookupClass = undef;
 
 sub new {
 	my $class  = shift;

@@ -53,6 +53,7 @@ our $DataSourceVer = '0.1';
 our $providerName ='CUE Sheet';
 #our $providerName =undef;
 our $providerUrl =undef;
+our $lookupClass = 'DataSource::CUE::CUELookup';
 
 sub new {
 	my $class  = shift;
