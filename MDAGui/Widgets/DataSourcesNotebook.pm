@@ -47,16 +47,17 @@ sub init {
 	my $self = shift;
 	$self->widget($self->{parentWindow}->new_ttk__notebook());
 	#$rightNotebookWindow = $rightLabelFrame->new_ttk__notebook();
-	Tkx::ttk__style('configure', 'TNotebook' , -tabposition => 'wn', -tabmargins => [2, 2, 0, 2]);
+
+# This is working
+##	Tkx::ttk__style('configure', 'TNotebook' , -tabposition => 'wn', -tabmargins => [2, 2, 0, 2]);
+##	Tkx::ttk__style('configure', 'TNotebook.Tab' , -space=> 180, , -underline => 1, -embossed => 1 );
+
+# Not sure of which is working
 #	Tkx::ttk__style('configure', 'Notebook.Label' , -space=> 40, , -underline => 1); 
 #	Tkx::ttk__style('configure', 'Notebook.label' , -space=> 40, , -underline => 1);
 #	Tkx::ttk__style('configure', 'TNotebook.label' , -space=> 40, , -underline => 1);
 #	Tkx::ttk__style('configure', 'TNotebook' , -space=> 40, , -underline => 1);
 #	Tkx::ttk__style('configure', 'Notebook.TLabel' , -space=> 40, , -underline => 1);
-#	Tkx::ttk__style('configure', 'Notebook.Tab' , -space=> 40, , -underline => 1);
-#	Tkx::ttk__style('configure', 'Notebook.tab' , -space=> 40, , -underline => 1);
-#	Tkx::ttk__style('configure', 'TNotebook.tab' , -space=> 40, , -underline => 1);
-	Tkx::ttk__style('configure', 'TNotebook.Tab' , -space=> 180, , -underline => 1, -embossed => 1 );
 	
 	Tkx::ttk__style('configure', 'Blue.TFrame',	-background => 'blue', -foreground => 'black', -relief => 'solid');
 	Tkx::ttk__style('configure', 'Blue.TLabel',	-background => 'blue', -foreground => 'yellow', -relief => 'flat');
@@ -65,10 +66,10 @@ sub init {
 
 	$self->{blankTab}{labelW}->g_pack(-anchor => 'center', -expand => 'true', -padx => 5);
 	$self->{blankTabWidget}->g_pack(-fill => "both", -expand => "yes");
-	$self->widget()->m_add($self->{blankTabWidget}, -text => '...', -state => 'normal');
+	$self->widget()->m_add($self->{blankTabWidget}, -text => 'files', -state => 'normal');
 	$self->widget()->g_pack(-fill => "both", -expand => "yes");
 
-	foreach my $source (@{$self->sources()}) {
+	foreach my $source (sort( { $a->providerName cmp $b->providerName } @{$self->sources()})) {
 		my $sourceName = $source->providerName();
 		my $providerTabId = lc($source->name()).'Tab';
 		print $source->name(),"\n";
@@ -78,12 +79,71 @@ sub init {
 		$tab->init();
 		push @{$self->{tabs}}, $tab;
 	}
+	
 
+	# if MDA File is loaded, we must activate DataSource Tab
+	GuiOrchestrator::registerEventListener("mdaFileLoaded", 
+		sub {
+			$self->enableDataSourceTabs();
+			
+			# if a tab had already been selected, restore it
+			if(exists($self->{lastSelectedTab}) and defined($self->{lastSelectedTab} )) {
+				$self->widget->m_select($self->{lastSelectedTab});
+			}
+			return; 
+		} 
+	);
+	
+	# if no MDA is found in new folder, disable tabs
+	GuiOrchestrator::registerEventListener("noMdaFileInFolder", 
+		sub {
+			$self->disableDataSourceTabs();
+			return; 
+		} 
+	);
+	
+	# save last selected notebook tab
+	$self->widget()->g_bind('<<NotebookTabChanged>>', 
+		sub {
+			# only dataSource tab are saved, ignore first tab
+			if($self->widget->m_select() ne '.p.n.noMetaData') {
+				$self->{lastSelectedTab} = $self->widget->m_select();
+			}
+		}
+	); 
 # List elements children of notebook (contains tabs)
 #	die(Dumper(Tkx::i::call('winfo', 'children', $self->widget())));
 # Get tab list in real order
 #	die(Dumper($self->widget()->m_tabs()));
 }
+
+sub listDataSourceTabs {
+	my $self = shift;
+	foreach my $tab (@{$self->{tabs}}) {
+		print("widget: ".$tab->widget()." in position ".$self->widget()->m_index($tab->widget())."\n");
+	}
+}
+
+sub disableDataSourceTabs {
+	my $self = shift;
+	foreach my $tab (@{$self->{tabs}}) {
+		# find position from the widget name
+		my $pos = $self->widget()->m_index($tab->widget());
+		# disable the tab
+		$self->widget()->m_tab($pos, -state => 'disabled');
+	}
+}
+
+sub enableDataSourceTabs {
+	my $self = shift;
+	foreach my $tab (@{$self->{tabs}}) {
+		# find position from the widget name
+		my $pos = $self->widget()->m_index($tab->widget());
+		# disable the tab
+		$self->widget()->m_tab($pos, -state => 'normal');
+	}
+}
+
 
 sub parentWindow {
 	my $self = shift;	# XXX: ignore calling class/object

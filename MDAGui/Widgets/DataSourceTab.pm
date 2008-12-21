@@ -21,6 +21,8 @@ use Data::Dumper;
 use Tkx;
 use Log::Log4perl qw(:easy);
 
+use GuiOrchestrator;
+
 my $windows = 0;
 if ($OSNAME =~ /^m?s?win/xmi) {
 	$windows = 1;
@@ -132,11 +134,8 @@ sub init {
 	
 	# Creation of the main frame called "<lc_sourceName>Tab" (ex: .p.n.amgTab )
 	$self->widget( $self->parentWindow()->new_ttk__frame(-name => $tabId));
-	$self->parentWindow()->m_add($self->widget(), -text => $tabName, -state => 'normal');
-# TODO: remove this test
-	my $picto = Tkx::image("create", "photo", -file => 'graphics/music.png');
-	print('XXXXXXXXXXX ', Dumper($self->parentWindow()->m_tab(0, -image => $picto, -compound => 'left', -text => 'TTUTU')));
-	
+	$self->parentWindow()->m_add($self->widget(), -text => $tabName, -state => 'disabled');
+
 #	$self->{actions} = {
 #		setSearchParams  =>  { name => 'Search', method=>'', paramList=>'' },
 #		viewSearchResults  =>  {name => 'Results', method=>'', paramList=>''},
@@ -144,19 +143,38 @@ sub init {
 #		viewRetrieveParams =>  {name => '', method=>'', paramList=>''}
 #	};
 
+	# all frames without check of the DataSource capabilities
+	#$self->{subFramesNames} = ['Lookup', 'Result', 'Retrieval Input', 'Retrieved'];
 	# create sub frames
-	$self->{subFramesNames} = ['Lookup', 'Result', 'Retrieval Input', 'Retrieved'];
+	if(defined($self->lookup)) {
+		my $foundItems;
+
+		$foundItems = $self->lookup->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'lookup', }); 
+		if(defined($foundItems) and $foundItems > 0) {
+			push(@{$self->{subFramesNames}}, ('Lookup', 'Result'));
+		};
+		
+		$foundItems = $self->lookup->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'retrieval', });
+		if(defined($foundItems) and $foundItems > 0) {
+			push(@{$self->{subFramesNames}}, ('Retrieval Input', 'Retrieved'));
+		};
+	}
+	
 	foreach my $subFrameName ( @{$self->{subFramesNames}} ) {
+		print("$subFrameName  \n");
 		$self->addSubFrame($subFrameName);
 	}
 
-	# create labels on two frames
-	$self->subFrameContent('retrieved')->{myLabel} = $self->subFrame('retrieved')->new_ttk__label(-style =>'Black.TLabel', -text => 'retrieved frame label');
-	$self->subFrameContent('retrieved')->{myLabel}->g_pack(-anchor => 'sw');
+	# if there was a 'retrieved' subFrame created
+	if(defined($self->subFrame('retrieved'))) {
+		# create labels on the frame
+		$self->subFrameContent('retrieved')->{myLabel} = $self->subFrame('retrieved')->new_ttk__label(-style =>'Black.TLabel', -text => 'retrieved frame label');
+		$self->subFrameContent('retrieved')->{myLabel}->g_pack(-anchor => 'sw');
+		$self->createInputSubFrameContent('Retrieval Input');
+	}
 	
 #	$self->subFrameContent('Retrieval Input')->{myLabel} = $self->subFrame('Retrieval Input')->new_ttk__label( -text => 'input frame label');
 #	$self->subFrameContent('Retrieval Input')->{myLabel}->g_pack(-anchor => 'nw', -padx => 5, -pady => 2);
-	$self->createInputSubFrameContent('Retrieval Input');
 
 	# Radio buttons and separator with the enclosing frame
 	$self->createRadioPanel();
@@ -166,7 +184,14 @@ sub init {
 	Tkx::grid("rowconfigure", $self->widget(), 1, -weight => 1);
 
 	$self->{radioButtonFrameW}->g_grid(-row=>0, -column=>0,  -sticky => 'nesw');
-	$self->{retrievedFrameW}->g_grid(-columnspan => 2, -row=>1, -column=>0,  -sticky => 'nesw');
+	
+	# select a default frame to display (only if widget exists)
+	if(defined($self->subFrame('retrieved'))) {
+		# check the radiobutton
+		$self->{radioButtonFrame}->{'Retrieval InputradiobuttonW'}->m_state('selected');
+		# show the associatedframe
+		$self->{'retrieval inputFrameW'}->g_grid(-columnspan => 2, -row=>1, -column=>0,  -sticky => 'nesw');
+	}
 
 }
 
@@ -181,14 +206,25 @@ sub createInputSubFrameContent {
 	 
 	# the widget content HashRef
 	my $content = $self->subFrameContent('Retrieval Input');
-	
-	my $retrievalItems = $self->source->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'retrieval', targetElement => 'album',});
-	foreach my $item (@{$retrievalItems}) {
-		$content->{$item->{name}.'LabelW'} = $widget->new_ttk__label( -text => $item->{displayName}.':');
-		$content->{$item->{name}.'LabelW'}->g_pack(-anchor => 'nw', -padx => 0, -pady => 0);
-		$content->{$item->{name}.'EntryW'} = $widget->new_ttk__entry( -textvariable => \$content->{$item->{name}.'Value'});
-		$content->{$item->{name}.'EntryW'}->g_pack(-anchor => 'nw', -padx => 0, -pady => 0, -fill => 'x');
-	} 
+
+	if(defined($self->lookup))
+	{
+		my $retrievalItems = $self->lookup->getSupportedLookupItemsByCriteriasAndValuesHashRef( { type => 'retrieval', targetElement => 'album',});
+		
+		foreach my $item (@{$retrievalItems}) {
+			$content->{$item->{name}.'LabelW'} = $widget->new_ttk__label( -text => $item->{displayName}.':');
+			$content->{$item->{name}.'LabelW'}->g_pack(-anchor => 'nw', -padx => 0, -pady => 0);
+			$content->{$item->{name}.'EntryW'} = $widget->new_ttk__entry( -textvariable => \$content->{$item->{name}.'Value'});
+			$content->{$item->{name}.'EntryW'}->g_pack(-anchor => 'nw', -padx => 0, -pady => 0, -fill => 'x');
+			
+			# if the item is a 'currentDirectory' item, the entry must be read-only
+			# and bound to the current directory
+			if($item->{name} eq 'mdaFileDirectory') 
+			{
+				$content->{$item->{name}.'EntryW'}->m_configure(-state => 'readonly', -textvariable => \$GuiOrchestrator::currentDir);
+			}
+		} 
+	}
 }
 
 sub parentWindow {
@@ -205,8 +241,22 @@ sub widget {
 
 sub source {
 	my $self = shift;	# XXX: ignore calling class/object
-	$self->{source} = shift if @_;
+	if(@_) {
+		my $source = shift;
+		$self->{source} = $source;
+		$self->{lookup} = $source->lookupClass();
+	}
 	return $self->{source};
+}
+
+sub lookup {
+	my $self = shift;	# XXX: ignore calling class/object
+	if(@_) {
+		my $lookup = shift;
+		$self->{lookup} = $lookup;
+		$self->{source} = $lookup->readerClass();
+	}
+	return $self->{lookup};
 }
 
 
