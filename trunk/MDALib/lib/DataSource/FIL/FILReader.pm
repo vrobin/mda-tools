@@ -51,7 +51,8 @@ use Log::Log4perl qw(:easy);
 our $DataSourceName = 'FIL';
 our $DataSourceVer = '0.1';
 our $providerName ='File Reader';
-our $providerUrl =undef;
+our $providerUrl = undef;
+our $lookupClass = 'DataSource::FIL::FILLookup';
 
 sub new {
 	my $class  = shift;

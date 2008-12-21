@@ -1,39 +1,29 @@
 #!/usr/bin/perl -w
 
-package DataSource::DOG::DOGLookup;
+package DataSource::CUE::CUELookup;
 use base qw( DataFile::LookupData );
 
-use DataSource::DOG::DOGReader;
+use DataSource::CUE::CUEReader;
 
 use strict;
 use utf8;
 use version; our $VERSION = qw('0.1.0);
 
-our $DataSourceName = $DataSource::DOG::DOGReader::DataSourceName;
+
+our $DataSourceName = $DataSource::CUE::CUEReader::DataSourceName;
 our $DataSourceVer = '0.1';
-our $providerName = $DataSource::DOG::DOGReader::providerName;
-our $providerUrl = $DataSource::DOG::DOGReader::providerUrl;
-our $readerClass = 'DataSource::DOG::DOGReader';
+our $providerName = $DataSource::CUE::CUEReader::providerName;
+our $providerUrl = $DataSource::CUE::CUEReader::providerUrl;
+our $readerClass = 'DataSource::CUE::CUEReader';
 
 our $supportedLookupItems = [
-#	albumId => {
-#		type 	=> 'id',
-#		target 	=> 'album',
-#		name 	=> 'albumSqlId',
-#		displayName => 'Album Id'
-#	}
-	{
-		type 			=> 'retrieval',
-		targetElement 	=> 'album',
-		displayName 	=> 'Album Id',
-		name 			=> 'albumId'
+	{ # cue is a "directory" only DataSource
+	  # mdaFileDirectory name items will be mapped to current directory in GUI
+				   type => 'retrieval',
+		targetElement => 'album',
+		  displayName => 'Album directory',
+				   name => 'mdaFileDirectory'  
 	},
-	{
-		type 			=> 'retrieval',
-		targetElement 	=> 'album',
-		displayName 	=> 'Album Url',
-		name 			=> 'albumUrl'
-	}
 ];
 
 sub new {
@@ -75,8 +65,3 @@ sub new {
 
 	return $lookupData;
 }
-
-
-
-
-1;

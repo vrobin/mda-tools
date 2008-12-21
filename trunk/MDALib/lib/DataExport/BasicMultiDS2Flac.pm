@@ -229,9 +229,9 @@ sub generateTags{
 #	local $Data::Dumper::Maxdepth = 5;
 #	print Dumper \$MYDE->filesInDirHash(); die;
 	
-	if( defined($self->albumFile->dataSource('AMGClassical'))  ) {
+	if( defined($self->albumFile->dataSource('AMG'))  ) {
 		$AMGClassicalDE=DataExport::AMGClassical2Flac->new();
-		$AMGClassicalDE->dataSource($self->albumFile->dataSource('AMGClassical'));
+		$AMGClassicalDE->dataSource($self->albumFile->dataSource('AMG'));
 		$AMGClassicalDE->readFlacFilesFromCurrentDir();
 		# Check if guessed or read in tags tracknum/discnum is correct
 		if($AMGClassicalDE->checkTrackAndDiscCoherency() == 0 ) {

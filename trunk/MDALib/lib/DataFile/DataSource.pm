@@ -48,6 +48,18 @@ sub parent {
 	return albumFile(@_);
 }
 
+sub lookupClass {
+	my $selfOrClass = shift;
+	print($selfOrClass."\n");
+	print(ref($selfOrClass)."\n");
+	if(ref($selfOrClass eq ''))
+	{ # this is an instance
+		return eval('$'.ref($selfOrClass).'::lookupClass');
+	}
+	# this is a static call
+	return eval('$'.$selfOrClass.'::lookupClass');
+}
+
 # Static or instance call, returns an array of available dataSources
 # modules
 sub availableDataSources{
