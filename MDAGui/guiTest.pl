@@ -113,7 +113,7 @@ my $button = $mw->new_ttk__button(
 );
 
 ## in class # my $tree = $panedWindow->new_treectrl();
-$Tkx::TRACE='false';
+$Tkx::TRACE=0;
 #die Tkx::i::call("info", 'library');
 
 print "TNotebook layout options: \n", Dumper(Tkx::i::call('style', 'layout', 'TNotebook')), "\n";
