@@ -78,7 +78,7 @@ sub init {
 						'disabled', $self->{$picto->{name}.'GrayedImage'}, 
 						'active', $self->{$picto->{name}.'Image'} ], 
 			-style => 'Toolbar.Toolbutton', 
-			-command => sub {print($picto->{name}."\n"); GuiOrchestrator::fireEvent('mdaFileChanged');}
+			-command => sub { $self->buttonClick($picto->{name});}
 		);
 		$self->{$picto->{name}.'ButtonW'}->g_pack(-side => 'left');	
 	}
@@ -123,6 +123,9 @@ sub init {
 #	Tkx::grid("rowconfigure", $self->widget(), 1, -weight => 1);
 	$self->{widget}->g_pack(-anchor => 'nw', -expand => 'false', -fill=>'x');
 	
+	# save button is not active at startup (no folder selected, no file modified)
+	$self->disableButton('save');
+	
 	# register event listeners to modify available buttons according to 
 	# the application state
 	
@@ -134,6 +137,30 @@ sub init {
 	
 	# no mda file in folder, there's nothing to save, so disable button
 	GuiOrchestrator::registerEventListener('noMdaFileInFolder', sub {return $self->disableButton('save'); } );
+
+	# current file was saved, the user can not use 'save' action 
+	GuiOrchestrator::registerEventListener('mdaFileSaved', sub {return $self->disableButton('save'); } );
+}
+
+# this sub is called when a button is clicked, first argument is the button name
+sub buttonClick() {
+	my $self = shift;
+	my $buttonName = shift;
+	
+	DEBUG('Toolbar action: '.$buttonName);
+	
+	if($buttonName eq 'add') {
+		GuiOrchestrator::fireEvent('createNewMdaFile');
+	}
+	elsif($buttonName eq 'save'){
+		GuiOrchestrator::fireEvent('saveMdaFile');
+	}
+	elsif($buttonName eq 'refresh'){
+		
+	}
+	elsif($buttonName eq 'music'){
+		GuiOrchestrator::fireEvent('mdaFileChanged');
+	}
 }
 
 # This sub disable the button which name is passed as a parameter

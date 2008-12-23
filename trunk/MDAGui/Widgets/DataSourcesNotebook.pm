@@ -94,6 +94,18 @@ sub init {
 		} 
 	);
 	
+	# if a new MDA File is created, we must activate DataSource Tab as well
+	GuiOrchestrator::registerEventListener('createNewMdaFile', 
+		sub {
+			$self->enableDataSourceTabs();
+			
+			# if a tab had already been selected, restore it
+			if(exists($self->{lastSelectedTab}) and defined($self->{lastSelectedTab} )) {
+				$self->widget->m_select($self->{lastSelectedTab});
+			}
+			return; 
+		} 
+	);
 	# if no MDA is found in new folder, disable tabs
 	GuiOrchestrator::registerEventListener("noMdaFileInFolder", 
 		sub {
