@@ -44,6 +44,15 @@ our $eventListeners = {
 	
 	# the mdaFile has changed, save can be done
 	mdaFileChanged => undef,
+
+	# new MDA file creation asked
+	createNewMdaFile => undef,
+
+	# MDA file saving asked
+	saveMdaFile=> undef,
+	
+	# the mdaFile has been saved
+	mdaFileSaved => undef,
 };
 
 
@@ -83,7 +92,7 @@ sub currentDir {
 } 
 
 sub albumFile {
-	
+	my $self = shift;	# XXX: ignore calling class/object
 	if(@_) 
 	{
 		$albumFile = shift	
@@ -104,7 +113,7 @@ sub isChangeDirectoryAllowed {
 		my $returnvalue = Tkx::tk___messageBox(-type => "yesnocancel",
 	    -message => "Save metadata changes ?",
 	    -default => "cancel",
-	    -icon => "warning", -title => "MDA");
+	    -icon => "warning", -title => "MDA - save changes");
 	    
 	    # the user cancelled the directory change action
 	    if($returnvalue =~ /cancel/) {
@@ -112,8 +121,7 @@ sub isChangeDirectoryAllowed {
 	    	return 0;
 	    }
 	    if($returnvalue =~ /yes/) {
-# TODO: save MDA File
-			albumFile()->serialize(currentMdaFile());
+			fireEvent('saveMdaFile');
 			# file is saved, directory change is allowed with 'return 1' below
 	    }
 	    if($returnvalue =~ /no/) {
@@ -160,18 +168,19 @@ sub directoryChanged {
 				DEBUG("$newDirectory contain '$fileInDir' MDA XML file");
 				
 				# set the fullpath of the mda file
-				currentMdaFile($fileInDirFullPath);
+				GuiOrchestrator->currentMdaFile($fileInDirFullPath);
 
 				# create a new MDA DataFile
-				albumFile( DataFile::AlbumFile->new() );
+				GuiOrchestrator->albumFile( DataFile::AlbumFile->new() );
 
+#TODO: add an eval to handle malformed xml file	
 				# load this new DataFile object with the found mda.xml file
-				$albumFile->deserialize(currentMdaFile());
+				$albumFile->deserialize(GuiOrchestrator->currentMdaFile());
 				print(Dumper($albumFile));
 				# MDA File has been loaded, so it hasn't changed yet 
 				$fileChanged = 0;
-				
-				fireEvent('mdaFileLoaded', currentMdaFile(), albumFile());
+
+				fireEvent('mdaFileLoaded', GuiOrchestrator->currentMdaFile(), GuiOrchestrator->albumFile());
 			}
 		}else {
 			WARN ("Directory entry '$fileInDirFullPath' isn't a directory nor a normal file\n");
@@ -179,7 +188,7 @@ sub directoryChanged {
 	}
 	
 	# if there was no .mda.xml file found, toggle the noMdaFileInDirectory event
-	if(not defined albumFile() ) {
+	if(not defined GuiOrchestrator->albumFile() ) {
 		fireEvent('noMdaFileInFolder');
 	}
 	
@@ -201,8 +210,65 @@ sub fireEvent {
 	return undef;
 }
 
+# the gui orchestrator is asked to create a new file
+sub createNewMdaFile {
+	
+	# there is an existing file, ask before overwrite it
+	if(defined($albumFile)) {
+		# message box display
+		my $returnvalue = Tkx::tk___messageBox(-type => "yesno",
+	    -message => "You will lose all data for this album, do you really want to create a new file?",
+	    -default => "no",
+	    -icon => "warning", -title => "MDA - create new file");
+	    
+
+	    if($returnvalue =~ /no/) {
+			# user choose "don't create new file"
+			# action is cancelled
+			return 0;
+	    }
+	    if($returnvalue =~ /yes/) {
+		# ignored, the work for creation is done after the if block
+	    }
+	}
+
+	# Create blank album file
+	GuiOrchestrator->albumFile(DataFile::AlbumFile->new());
+	
+	# the default name must be used as the filename
+	GuiOrchestrator->currentMdaFile(File::Spec->catfile($currentDir, '.mda.xml'));
+
+	# creating a new file is similar to loading (like loading a blank file)
+	fireEvent('mdaFileLoaded', GuiOrchestrator->currentMdaFile(), GuiOrchestrator->albumFile());
+
+	# as the new file isn't already saved, we must mark it as 'changed' (file must be saved)
+	fireEvent('mdaFileChanged');
+	print Dumper(GuiOrchestrator->albumFile());
+	return 1;
+}
+
+sub saveMdaFile {
+	
+	# if currentDir is invalid
+	if(not defined($currentDir) or $currentDir eq '' ) 
+	{	# log and return false
+		ERROR("unable to save mda file without currentDir set");
+		return 0;
+	}
+	
+	# if the mdaFile is empty or invalid, create default file name
+	if(not defined($currentMdaFile) or $currentMdaFile eq '' ) 
+	{
+		GuiOrchestrator->currentMdaFile(File::Spec->catfile($currentDir, '.mda.xml'));
+	}
+	GuiOrchestrator->albumFile()->serialize(GuiOrchestrator->currentMdaFile());
+	fireEvent('mdaFileSaved'); 
+}
+
+registerEventListener("createNewMdaFile", sub {return createNewMdaFile(@_); } );
+registerEventListener("saveMdaFile", sub {return saveMdaFile(@_); } );
 registerEventListener("beforeDirectoryChange", sub {return isChangeDirectoryAllowed(@_); } );
 registerEventListener("afterDirectoryChanged", sub {return directoryChanged(@_); } );
 registerEventListener("mdaFileChanged", sub { $fileChanged=1; return 1; } );
-
+registerEventListener("mdaFileSaved", sub { $fileChanged=0; return 1; } );
 1;
