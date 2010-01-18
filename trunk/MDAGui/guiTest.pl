@@ -38,8 +38,8 @@ my $conf = q(
 	    log4perl.appender.ScreenApp          = Log::Log4perl::Appender::Screen
 	    log4perl.appender.ScreenApp.stderr   = 0
 	    log4perl.appender.ScreenApp.layout   = PatternLayout
-	    log4perl.appender.ScreenApp.layout.ConversionPattern = %p: %F{1}-%L (%M)> %m%n 
-	    #%d> %m%n        
+	    log4perl.appender.ScreenApp.layout.ConversionPattern = %p: %F{1}-%L (%M)> %m%n
+	    #%d> %m%n
     );
 
 # Initialize logging behaviour
@@ -68,7 +68,7 @@ my $toto = "DataSource::AKM::AKMLookup";
 #die Dumper($lookup->getSupportedLookupItemsByCriteriasAndValuesHashRef( {targetElement => 'album', type => 'retrieval'} ));
 
 
-# Print the list of available themes: 
+# Print the list of available themes:
 # xpnative clam alt classic default winnative
 #print Tkx::ttk__themes()."\n";
 #print Tkx::i::call("ttk::themes")."\n";
@@ -102,7 +102,7 @@ my $panedWindow = $mw->new_ttk__panedwindow(
      -orient => "horizontal"
 );
 
-# Create a useless button, for switching horizontal/vertical split of the 
+# Create a useless button, for switching horizontal/vertical split of the
 # PanedWindow (no more working with tkx because orientation is read only)
 my $button = $mw->new_ttk__button(
      -text => "h/v",
@@ -191,7 +191,7 @@ sub mk_menu {
         -underline => 0,
         -menu => $file,
     );
-    
+
     $file->add_command(
         -label => "New",
         -underline => 0,
@@ -240,7 +240,7 @@ sub mk_menu {
 }
 
 #sub createRightNotebook {
-#	
+#
 #}
 
 #sub createRightNotebookTabsGridForget {
@@ -253,7 +253,7 @@ sub mk_menu {
 #	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW} = $mdaSourcePanel{noMetaData}{rootFrameW}->new_ttk__label(  -text => 'No metadata found in this folder.');
 #	$mdaSourcePanel{noMetaData}{rootFrame}{noMetaDataLabelW}->g_pack(-anchor => 'center', -expand => 'true');
 #	$notebook->m_add($mdaSourcePanel{noMetaData}{rootFrameW}, -text => '...', -state => 'normal');
-#	
+#
 #	print "class XXX: ", Tkx::winfo("class", ".p.n"), "\n";
 #	print "layout YYY: ", Tkx::style("layout", "TButton"), "\n";
 #	print("ZZZ:", Tkx::style("lookup", "TNotebook", ""), "\n");
@@ -276,7 +276,7 @@ sub mk_menu {
 #		#die Dumper $providerPages;
 #		$mdaSourcePanel{$provider}{rootFrame}{gridFrameW} = $providerRootFrameW->new_ttk__frame(-style => 'Blue.TFrame');
 #		my $gridFrameW = $mdaSourcePanel{$provider}{rootFrame}{gridFrameW};
-#		
+#
 ##		$gridFrameW->configure(-background => '#0000FF', -width => 200, -height => 200);
 ##		$gridFrameW->configure(-width => 200, -height => 200);
 ##		$gridFrameW->add("lookup");
@@ -295,22 +295,22 @@ sub mk_menu {
 #		print "layout tframe: ",Tkx::style("layout", 'TFrame'), "\n";
 #		print "layout tutu.tframe: ",Tkx::style("layout", 'Tutu.TFrame'), "\n";
 #		print Tkx::style("element", 'options', 'TFrame');
-#		
+#
 #		$providerPages->{retrievedFrame}{myLabel} = $providerPages->{retrievedFrameW}->new_ttk__label(-style =>'Black.TLabel', -text => 'retrieved frame label');
 #		$providerPages->{retrievedFrame}{myLabel}->g_pack(-anchor => 'sw');
 ##		$providerPages->{inputFrameW}->configure(-background => "#ff0000");
 #		$providerPages->{inputFrame}{myLabel} = $providerPages->{inputFrameW}->new_ttk__label( -text => 'input frame label');
 #		$providerPages->{inputFrame}{myLabel}->g_pack(-anchor => 'nw', -padx => 5, -pady => 2);
-#		my $bouton = $providerRootFrameW->new_ttk__button(-text => "Input", 
-#				-command => sub { 
+#		my $bouton = $providerRootFrameW->new_ttk__button(-text => "Input",
+#				-command => sub {
 #								Tkx::grid("remove", $providerPages->{retrievedFrameW});
-#								$providerPages->{inputFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw'); 
+#								$providerPages->{inputFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw');
 #							}
 #				);
-#		my $bouton2 = $providerRootFrameW->new_ttk__button(-text => "Retrieved", 
-#				-command => sub { 
+#		my $bouton2 = $providerRootFrameW->new_ttk__button(-text => "Retrieved",
+#				-command => sub {
 #								Tkx::grid("remove", $providerPages->{inputFrameW});
-#								$providerPages->{retrievedFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw'); 
+#								$providerPages->{retrievedFrameW}->g_grid(-columnspan => 2, -row=>0, -column=>0,  -sticky => 'nesw');
 #							}
 #				);
 #Tkx::grid("columnconfigure", $providerRootFrameW, 0, -weight => 1);
@@ -338,7 +338,7 @@ sub about {
 		"All lefts preserved.\n". "http://www.ratp.fr"
 	);
 }
-    
+
 Tkx::MainLoop();
 
 
@@ -365,7 +365,7 @@ Tkx::MainLoop();
 #		$providerPagesW->g_pack(-anchor => 'nw',  -fill => 'both', -expand => 'true');
 #		$providerPages->{inputFrameW}->g_pack();
 #		$providerPages->{retrievedFrameW}->g_pack();
-		
+
 #		my $providerRootFrame = $mdaSourcePanel{$provider}{rootFrame};
 #		my $providerRootFrameW = $mdaSourcePanel{$provider}{rootFrameW};
 #		my $providerPagesW =$providerRootFrame->{PagesManagerW};
@@ -410,7 +410,7 @@ Tkx::MainLoop();
 #Tkx::package("require", "BWidget");
 #Tkx::package("require", "snit");
 #Tkx::package("require", "tooltip");
-#print join "\n", (Tkx::SplitList(Tkx::set('auto_path'))), "\n"; 
-#my $i = Tcl->new; 
-#$i->Init; 
+#print join "\n", (Tkx::SplitList(Tkx::set('auto_path'))), "\n";
+#my $i = Tcl->new;
+#$i->Init;
 #print $i->call('info','patchlevel') ."\n";
