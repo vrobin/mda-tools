@@ -86,8 +86,7 @@ $VAR5 = bless( [
       
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1229864763843" ID="ID_209939622" MODIFIED="1229865140843" TEXT="Element options">
@@ -116,8 +115,7 @@ $VAR5 = bless( [
       $VAR2 = '-background';
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1229864852468" ID="ID_1659580893" MODIFIED="1229864881921">
 <richcontent TYPE="NODE"><html>
@@ -180,8 +178,7 @@ $VAR5 = bless( [
       $VAR14 = '-background';
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1229864895546" ID="ID_1726309900" MODIFIED="1229864920203">
 <richcontent TYPE="NODE"><html>
@@ -211,16 +208,27 @@ $VAR5 = bless( [
       $VAR3 = '-shiftrelief';
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
-<node CREATED="1229868064062" FOLDED="true" ID="ID_168190730" MODIFIED="1229868140328" TEXT="Ins&#xe9;rer un onglet avec une image">
-<node CREATED="1229868070984" ID="ID_7919855" MODIFIED="1229868138859" TEXT="Tkx::image(&quot;create&quot;, &quot;photo&quot;, -file =&gt; &apos;graphics/music.png&apos;);&#xa;$theNotebook-&gt;m_tab(0, -image =&gt; $picto, -compound =&gt; &apos;left&apos;, -text =&gt; &apos;TUTU&apos;))"/>
+<node CREATED="1229868064062" FOLDED="true" ID="ID_168190730" MODIFIED="1229953329656" TEXT="Add picture to a tab">
+<node CREATED="1229868070984" ID="ID_7919855" MODIFIED="1229885890578" TEXT="Tkx::image(&quot;create&quot;, &quot;photo&quot;, -file =&gt; &apos;graphics/music.png&apos;);&#xa;$theNotebook-&gt;m_tab(0, -image =&gt; $picto, -compound =&gt; &apos;left&apos;, -text =&gt; &apos;TUTU&apos;))&#xa;"/>
+</node>
+<node CREATED="1229885909468" FOLDED="true" ID="ID_1460315533" MODIFIED="1229953334203" TEXT="Create a new tab">
+<node CREATED="1229885915515" ID="ID_1831921729" MODIFIED="1229885947468" TEXT="$theNotebook-&gt;m_add($theFrameToAdd, -text =&gt; $tabName, -state =&gt; &apos;disabled&apos;);"/>
+</node>
+<node CREATED="1229888410234" FOLDED="true" ID="ID_1365242672" MODIFIED="1229953339593" TEXT="Activate a tab">
+<node CREATED="1229888416359" ID="ID_576389082" MODIFIED="1229888468937" TEXT="$theNotebook-&gt;m_tab($pos, -state =&gt; &apos;normal&apos;);"/>
+</node>
+<node CREATED="1229888443812" FOLDED="true" ID="ID_957350307" MODIFIED="1229953344609" TEXT="Disable a tab">
+<node CREATED="1229888453234" ID="ID_51737987" MODIFIED="1229888458703" TEXT="$theNotebook-&gt;m_tab($pos, -state =&gt; &apos;disabled&apos;);"/>
+</node>
+<node CREATED="1229888500468" FOLDED="true" ID="ID_73879065" MODIFIED="1229953350843" TEXT="Name of the selected tab">
+<node CREATED="1229888507781" ID="ID_102859473" MODIFIED="1229888535359" TEXT="$theNotebook-&gt;m_select();&#xa;&#xa;retourne le nom de la fen&#xea;tre .p.n.nomTab"/>
 </node>
 </node>
-<node CREATED="1229864967328" FOLDED="true" ID="ID_914658836" MODIFIED="1229867978796" TEXT="Global Style commands">
+<node CREATED="1229864967328" FOLDED="true" ID="ID_914658836" MODIFIED="1229953428093" TEXT="Global Style commands">
 <node CREATED="1229864982750" ID="ID_563787783" MODIFIED="1229865046875">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -240,8 +248,7 @@ $VAR5 = bless( [
       Tkx::ttk__style('configure', 'Blue.TLabel', -background =&gt; 'blue', -foreground =&gt; 'yellow', -relief =&gt; 'flat');
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1229865049937" ID="ID_1885852442" MODIFIED="1229865107796">
 <richcontent TYPE="NODE"><html>
@@ -262,12 +269,16 @@ $VAR5 = bless( [
       $self-&gt;{blankTab}{labelW} = $self-&gt;{blankTabWidget}-&gt;new_ttk__label( -text =&gt; 'No metadata found in this folder.', -style =&gt; 'Blue.TLabel');
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
+</node>
+</node>
+<node CREATED="1229885790281" FOLDED="true" ID="ID_1705742656" MODIFIED="1229953425687" TEXT="ttk::radiobutton">
+<node CREATED="1229885796937" FOLDED="true" ID="ID_1634730310" MODIFIED="1229953419921" TEXT="Select a radiobutton">
+<node CREATED="1229885803406" ID="ID_294565300" MODIFIED="1229885828171" TEXT="$widget-&gt;m_state(&apos;selected&apos;);"/>
 </node>
 </node>
 </node>
-<node CREATED="1229865170578" ID="ID_166125071" MODIFIED="1229865176640" TEXT="Geometry Manager">
+<node CREATED="1229865170578" FOLDED="true" ID="ID_166125071" MODIFIED="1229888437546" TEXT="Geometry Manager">
 <node CREATED="1229865178578" ID="ID_1497621712" MODIFIED="1229865182921" TEXT="Pack">
 <node CREATED="1229865186281" ID="ID_1853367991" MODIFIED="1229865222531">
 <richcontent TYPE="NODE"><html>
@@ -285,8 +296,7 @@ $VAR5 = bless( [
       $self-&gt;widget()-&gt;g_pack(-fill =&gt; &quot;both&quot;, -expand =&gt; &quot;yes&quot;);
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1229865183953" ID="ID_786217872" MODIFIED="1229868483171" TEXT="Grid">
@@ -303,16 +313,16 @@ $VAR5 = bless( [
 </node>
 </node>
 <node CREATED="1229867767171" ID="ID_247330940" MODIFIED="1229867770062" TEXT="Images">
-<node CREATED="1229867770656" ID="ID_308711843" MODIFIED="1229867982031" TEXT="Cr&#xe9;er une image">
+<node CREATED="1229867770656" FOLDED="true" ID="ID_308711843" MODIFIED="1229953431640" TEXT="Create an image">
 <node CREATED="1229867777843" ID="ID_510630786" MODIFIED="1229867794906" TEXT="my $picto = Tkx::image(&quot;create&quot;, &quot;photo&quot;, -file =&gt; &apos;graphics/music.png&apos;);"/>
 </node>
-<node CREATED="1229867830156" ID="ID_1271526724" MODIFIED="1229867980921" TEXT="D&#xe9;clarer la lib png">
+<node CREATED="1229867830156" FOLDED="true" ID="ID_1271526724" MODIFIED="1229953430250" TEXT="Declare png lib">
 <node CREATED="1229867835390" ID="ID_875930350" MODIFIED="1229867845421" TEXT="Tkx::package(&quot;require&quot;, &quot;img::png&quot;);"/>
 </node>
 </node>
 <node CREATED="1229868010015" ID="ID_97833897" MODIFIED="1229868011640" TEXT="Divers">
-<node CREATED="1229868012218" ID="ID_648769963" MODIFIED="1229868018968" TEXT="Activer le mode debug">
-<node CREATED="1229868019953" ID="ID_1746399078" MODIFIED="1229868021250" TEXT="$Tkx::TRACE=&apos;false&apos;;"/>
+<node CREATED="1229868012218" FOLDED="true" ID="ID_648769963" MODIFIED="1229953411093" TEXT="Enable/Disable debug mode">
+<node CREATED="1229868019953" ID="ID_1746399078" MODIFIED="1229953402218" TEXT="$Tkx::TRACE=1;&#xa;$Tkx::TRACE=0;"/>
 </node>
 </node>
 </node>
