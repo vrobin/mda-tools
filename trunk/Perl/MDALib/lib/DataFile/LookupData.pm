@@ -8,6 +8,10 @@ use Tools;
 use Log::Log4perl qw(:easy);
 use Module::Find;
 
+# TODO: targetElement and type properties has been removed from XSD of the
+# dataFile, some checks should be made and these attributes should be removed 
+# from this class
+
 # Constructor method, by default, takes the same params as DataSource object
 sub new {
 	my $class    = shift;
