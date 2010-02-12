@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w -IJ:\\documents\\Projects\\workspace\\mda-tools\\Perl\\MDALib\\lib
 package DataFile::AlbumFile;
 
 use strict;
