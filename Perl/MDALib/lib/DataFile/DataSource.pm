@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w -I ../
 package DataFile::DataSource;
 
 use strict;
@@ -13,7 +13,7 @@ use Tools;
 
 use Log::Log4perl qw(:easy);
 use Module::Find;
-use YAML::Syck;
+#use YAML::Syck;
 
 sub new {
 	my $class  = shift;
