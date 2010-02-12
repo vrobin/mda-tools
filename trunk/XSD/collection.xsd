@@ -1,0 +1,889 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+TODO: 
+-->
+<schema targetNamespace="http://medee.dyndns.org/MDA/20080308/collection"
+	elementFormDefault="qualified" xmlns="http://www.w3.org/2001/XMLSchema" 
+	xmlns:tns="http://medee.dyndns.org/MDA/20080308/collection" 
+	xmlns:xlink="http://www.w3.org/1999/xlink">
+<import namespace="http://www.w3.org/1999/xlink" schemaLocation="xlink.xsd"/>
+    <complexType name="collectionType">
+		<sequence>
+			<element name="albumFile" type="tns:albumFileType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+
+		</sequence>
+	</complexType>
+
+	<complexType name="albumFileType">
+
+		<sequence>
+			<element name="dataSources" type="tns:dataSourcesType"
+				maxOccurs="1" minOccurs="1">
+			</element>
+
+
+            <element name="lookupDatas" type="tns:lookupDatasType" maxOccurs="1" minOccurs="0">
+				</element>
+        </sequence>
+
+	</complexType>
+
+	<complexType name="lookupDataType">
+        <annotation>
+        	<documentation>elements holding lookup data, ie all data the user can enter to locate the album information</documentation>
+        </annotation>
+        <sequence>
+			<element name="lookupItems" type="tns:lookupItemsType" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+		<attribute name="class" type="string">
+			<annotation>
+				<documentation>the classname associated with this lookupData object
+in the Perl source hierarchy, it's in [libdir]/DataSource/[DSTRIGRAM]/[DSTRIGRAM]Lookup.pm</documentation>
+			</annotation></attribute>
+		<attribute name="name" type="string">
+			<annotation>
+				<documentation>The name of the datasource, usually the same as the dataSource name from the Reader class.
+Most of the time, it's the dataSource Trigram</documentation>
+			</annotation></attribute>
+
+		<attribute name="providerName" type="string"></attribute>
+		<attribute name="providerUrl" type="string"></attribute>
+
+		<attribute name="version" type="string">
+			<annotation>
+				<documentation>The version of the "lookup" module</documentation>
+			</annotation></attribute>
+
+	</complexType>
+
+
+
+
+	<element name="collection" type="tns:collectionType"></element>
+
+	<complexType name="labelType" mixed="false">
+		<sequence>
+			<element name="rawData" type="string" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+		<attribute name="id" type="string"></attribute>
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="url" type="string"></attribute>
+	</complexType>
+	
+	<complexType name="albumDataType">
+		<sequence>
+			<!--  TODO: ADD discname, track details  -->
+
+			<element name="artworks" type="tns:picturesType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="awards" type="tns:awardsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="composers" type="tns:composersType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="credits" maxOccurs="1" minOccurs="0"
+				type="tns:creditsType">
+
+			</element>
+			<element name="discs" type="tns:discsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="label" type="string" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="length" type="tns:lengthType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+
+			<element name="notes" type="tns:notesType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+
+			<element name="origin" type="tns:placeType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="performances" type="tns:performancesType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			<element name="ratings" type="tns:ratingsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+			<element name="releases" type="tns:releasesType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="tags" type="tns:tagsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="works" type="tns:worksType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+		</sequence>
+
+
+		<attribute name="baseUrl" type="string"></attribute>
+		<attribute name="id" type="string">
+			<annotation>
+				<documentation>
+					unique ID from the datasource
+				</documentation>
+			</annotation>
+		</attribute>
+
+		<attribute name="channels" type="string" use="optional">
+			<annotation>
+				<documentation>
+					mono/stereo/multi/5.1/whatever like this
+				</documentation>
+			</annotation>
+		</attribute>
+
+		<attribute name="mediaType" type="string" use="optional">
+			<annotation>
+				<documentation>SACD/CD/DVD/Vynil, etc.</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="name" type="string" use="optional">
+			<annotation>
+				<documentation>the name of the album</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="numberOfDiscs" type="int" use="optional">
+			<annotation>
+				<documentation>in the album/discs set</documentation>
+			</annotation>
+		</attribute>
+
+
+
+		<attribute name="relativeUrl" type="string"></attribute>
+		<attribute name="sparsCode" type="string" use="optional">
+			<annotation>
+				<documentation>
+					AAA / AAD / ADD / DDD / N/A / Whatever
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="url" type="string"></attribute>
+
+	</complexType>
+
+
+
+
+
+	<complexType name="creditType" mixed="true">
+		<annotation>
+			<documentation>
+				+++ CDU +++ Matthieu Lecroart (Baritone - Le fleuve)
+				Giovanni Antonini Ensemble Director, Liner Notes Enrico
+				Onofri Violin Ottavio Dantone Harpsichord Il Giardino
+				Armonico Ensemble Herve Boissiere Executive Producer
+				Michel Chasteau Liner Note Translation Roberto
+				Chinellato Engineer, Digital Editing Fabia Framba
+				Producer Marco Frezzato Producer Charles B. Johnston
+				Liner Note Translation Bernhard Trebuch Executive
+				Producer Klaus Wachshütz Engineer Composer Jean-Philippe
+				Rameau (1683 - 1764) Conductor William Christie
+				Performer Maryseult Wieczorek (Mezzo Soprano - Une
+				Lacédémonienne) Paul Agnew (Tenor - Lycurgue) Jean-Paul
+				Fouchecourt (Tenor - L'oracle) Thierry Felix (Baritone -
+				Tirtée) Sophie Daneman (Soprano - Eglé) Gaelle Mechaly
+				(Soprano - L'amour) Sarah Connolly (Mezzo Soprano -
+				Sapho) Luc Coadou (Baritone - Alcée) Laurent Slaars
+				(Baritone - Hymas) Matthieu Lecroart (Baritone - Le
+				fleuve) +++ AMG +++ Fabio Biondi Conductor, Libretto
+				Revision David Daniels Counter Tenor (Vocal) Vivica
+				Genaux Mezzo-Soprano (Vocal) Patrizia Ciofi Soprano
+				(Vocal) Ildebrando D'Arcangelo Bass Baritone Elina
+				Garanca Mezzo-Soprano (Vocal) Marijana Mijanovic
+				Mezzo-Soprano (Vocal) +++ AKM +++ David [counter tenor]
+				Daniels +++ NOTES +++ The content of the tag is used to
+				keep track of the original name with role inside, it's
+				the text content from wich we extract role for example:
+				Sarah Connor (target), Arnold S. [the terminator]
+			</documentation>
+		</annotation>
+
+		<sequence>
+			<element name="rawData" type="string" maxOccurs="1"
+				minOccurs="0">
+			</element>
+		</sequence>
+        <attribute name="baseUrl" type="string"></attribute>
+		<attribute name="character" type="string" use="optional">
+			<annotation>
+				<documentation>
+					character played by the person credited (for opera
+					purpose, who plays rigoletto)
+				</documentation>
+			</annotation>
+		</attribute>
+        <attribute name="id" type="string">
+			<annotation>
+				<documentation>
+					id of the current person credited used to retrieve
+					object from original datasource
+				</documentation>
+			</annotation>
+		</attribute>
+        <attribute name="name" type="string" use="required">
+			<annotation>
+				<documentation>
+					name of the person credited, generally in the shape
+					"firstname lastname"
+				</documentation>
+			</annotation>
+		</attribute>
+        <attribute name="relativeUrl" type="string"></attribute>
+        <attribute name="role" type="string">
+			<annotation>
+				<documentation>
+					role of the credited person: photograph, linernotes,
+					conductor, solist, instrumentist, pianist, whatever
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="roleId" type="string">
+			<annotation>
+				<documentation>
+					when some data source require a role id in addition
+					to credit id
+				</documentation>
+			</annotation>
+		</attribute>
+
+
+		<attribute name="url" type="string"></attribute>
+
+
+	</complexType>
+
+	<complexType name="composerType" mixed="false">
+
+		<sequence>
+			<element name="activeDates" type="tns:dateType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="activePlaces" type="tns:placesType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="biography" type="tns:noteType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="birthPlace" type="tns:placeType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="deathPlace" type="tns:placeType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="lifeDate" type="tns:dateType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="pictures" type="tns:picturesType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+
+			<element name="rawData" type="string" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+
+
+
+			<element name="tags" type="tns:tagsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+		</sequence>
+
+		<attribute name="baseUrl" type="string"></attribute>
+		<attribute name="id" type="string"></attribute>
+
+		<attribute name="name" type="string"></attribute>
+		<attribute name="relativeUrl" type="string"></attribute>
+		<attribute name="url" type="string"></attribute>
+
+
+		<attribute ref="xlink:href" use="optional"></attribute>
+	</complexType>
+
+	<complexType name="lengthType" mixed="false">
+
+		<sequence>
+			<element name="rawData" type="string" maxOccurs="1"
+				minOccurs="0">
+				<annotation>
+					<documentation></documentation>
+				</annotation>
+			</element>
+		</sequence>
+		<attribute name="seconds" type="float" use="optional"></attribute>
+
+		<attribute name="frames" type="int"></attribute>
+	</complexType>
+
+
+
+
+
+	<complexType name="noteType" mixed="true">
+
+		<sequence>
+			<element name="rawData" type="string" maxOccurs="1"
+				minOccurs="0">
+				<annotation>
+					<documentation>
+						html welcome with html_encoded tags if needed
+					</documentation>
+				</annotation>
+			</element>
+			<element name="text" type="string" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+		<attribute name="type" type="string">
+			<annotation>
+				<documentation>
+					review, buyer's comment, editor's note, etc.
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="author" type="string"></attribute>
+	</complexType>
+
+	<complexType name="performanceDataType">
+		<sequence>
+
+
+
+			<element name="awards" type="tns:awardsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="credits" type="tns:creditsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+
+
+
+			<element name="date" type="tns:dateType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="length" type="tns:lengthType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+
+
+			<element name="notes" type="tns:notesType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+			<element name="place" type="tns:placeType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+			<element name="tags" type="tns:tagsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="work" xlink:type="simple" maxOccurs="1"
+				minOccurs="0" type="tns:workDataType">
+			</element>
+		</sequence>
+		<attribute name="baseUrl" type="string"></attribute>
+		<attribute name="excerpt" type="string"></attribute>
+		<attribute name="id" type="string" use="optional"></attribute>
+
+		<attribute name="index" type="int" use="optional"></attribute>
+
+
+
+		<attribute name="name" type="string"></attribute>
+		<attribute name="recordType" type="string" use="optional"></attribute>
+		<attribute name="relativeUrl" type="string"></attribute>
+		<attribute name="url" type="string"></attribute>
+
+		<attribute ref="xlink:href"></attribute>
+	</complexType>
+
+	<complexType name="workDataType">
+		<sequence>
+
+			<element name="composed" type="tns:composedType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+
+			<element name="composers" type="tns:composersType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+
+
+			<element name="length" type="tns:lengthType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+
+			<element name="notes" type="tns:notesType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+
+			<element name="parts" type="tns:partsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="publicationDate" type="tns:dateType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="revisionDate" type="tns:dateType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="tags" type="tns:tagsType" maxOccurs="1"
+				minOccurs="0">
+				<annotation>
+					<documentation>
+						AMG Work type CDU Category
+					</documentation>
+				</annotation>
+			</element>
+
+
+
+
+
+		</sequence>
+		<attribute name="baseUrl" type="string"></attribute>
+		<attribute name="id" type="string"></attribute>
+		<attribute name="index" type="string"></attribute>
+		<attribute name="genre" type="string" use="optional"></attribute>
+		<attribute name="language" type="string" use="optional"></attribute>
+		<attribute name="name" type="string" use="optional"></attribute>
+		<attribute name="period" type="string" use="optional"></attribute>
+
+		<attribute name="relativeUrl" type="string"></attribute>
+		<attribute name="url" type="string"></attribute>
+
+		<attribute ref="xlink:href"></attribute>
+	</complexType>
+
+	<complexType name="tagType" mixed="false">
+
+		<sequence>
+			<element name="rawData" type="string" maxOccurs="1"
+				minOccurs="0">
+			</element>
+		</sequence>
+		<attribute name="id" type="string"></attribute>
+		<attribute name="name" type="string"></attribute>
+		<attribute name="value" type="string"></attribute>
+		<attribute name="url" type="string"></attribute>
+	</complexType>
+
+	<complexType name="pictureType">
+		<annotation>
+			<documentation>
+				object used to store the data of an image, be it album
+				artwork or composer portrait
+			</documentation>
+		</annotation>
+		<sequence>
+			<element name="rawData" type="string" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="thumbnail" type="tns:pictureType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+		</sequence>
+        <attribute name="baseUrl" type="string"></attribute>
+        <attribute name="height" type="string"></attribute>
+		<attribute name="id" type="string"></attribute>
+        <attribute name="relativeUrl" type="string"></attribute>
+        <attribute name="type" type="string">
+			<annotation>
+				<documentation>
+					cover/frontcover/backcover/disc/whatever
+				</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="url" type="string"></attribute>
+
+		<attribute name="width" type="string"></attribute>
+
+
+	</complexType>
+
+	<complexType name="composersType">
+		<sequence>
+			<element name="composer" type="tns:composerType" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="creditsType">
+        <annotation>
+        	<documentation>just a container</documentation>
+        </annotation>
+        <sequence>
+			<element name="credit" type="tns:creditType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+
+	<complexType name="picturesType">
+		<annotation>
+			<documentation>simple container</documentation>
+		</annotation>
+		<sequence>
+			<element name="picture" type="tns:pictureType" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="datesType">
+		<sequence>
+
+			<element name="date" type="tns:dateType" maxOccurs="unbounded"
+				minOccurs="0">
+			</element>
+
+            <element name="rawData" type="string" maxOccurs="1" minOccurs="0">
+			</element>
+        </sequence>
+		
+	</complexType>
+
+	<complexType name="dateType">
+		<sequence>
+
+            <element name="normalized" type="string" maxOccurs="unbounded"
+				minOccurs="0">
+			</element>
+
+            <element name="rawData" type="string" maxOccurs="1" minOccurs="0">
+			</element>
+        </sequence>
+		
+	</complexType>
+	
+	<complexType name="notesType">
+		<sequence>
+			<element name="note" type="tns:noteType" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="worksType">
+		<sequence>
+			<element name="work" type="tns:workDataType" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="ratingsType">
+		<sequence>
+			<element name="rating" type="tns:ratingType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+
+	<complexType name="ratingType">
+
+		<sequence>
+			<element name="rawData" type="string" maxOccurs="1"
+				minOccurs="0">
+			</element>
+			<element name="note" type="tns:noteType" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+		<attribute name="providerName" type="string"></attribute>
+        <attribute name="type" type="string"></attribute>
+		<attribute name="value" type="string"></attribute>
+		<attribute name="valueMax" type="string"></attribute>
+
+	</complexType>
+
+	<complexType name="placeType">
+		<sequence>
+			<element name="rawData" type="string" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+		<attribute name="country" type="string"></attribute>
+		<attribute name="city" type="string"></attribute>
+	</complexType>
+
+	<element name="albumFile" type="tns:albumFileType"></element>
+
+	<complexType name="performancesType">
+		<sequence>
+			<element name="performance" type="tns:performanceDataType" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="awardsType">
+		<sequence>
+			<element name="award" type="tns:awardType" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="awardType" mixed="false">
+		<sequence>
+			<element name="rawData" type="string" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+		<attribute name="name" type="string"></attribute>
+
+	</complexType>
+
+	<complexType name="placesType">
+		<sequence>
+			<element name="place" type="tns:placeType" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="tagsType">
+		<sequence>
+			<element name="tag" type="tns:tagType" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="releasesType">
+		<sequence>
+			<element name="release" type="tns:releaseType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+
+	<complexType name="releaseType">
+		<sequence>
+
+			<element name="date" type="tns:dateType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+			<element name="note" type="tns:noteType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+            <element name="label" type="tns:labelType" maxOccurs="1" minOccurs="0">
+			</element>
+            <element name="tags" type="tns:tagsType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+		</sequence>
+
+        <attribute name="catalogNumber" type="string"></attribute>
+        <attribute name="mediaType" type="string"></attribute>
+		<attribute name="numberOfMedia" type="string"></attribute>
+
+	</complexType>
+
+	<complexType name="composedType">
+		<sequence>
+
+			<element name="date" type="tns:dateType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+            <element name="place" type="tns:placeType" maxOccurs="1" minOccurs="0">
+			</element>
+            <element name="rawData" type="string" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="partsType">
+		<sequence>
+			<element name="part" type="tns:partType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+
+	<complexType name="partType">
+		<attribute name="index" type="string"></attribute>
+		<attribute name="name" type="string"></attribute>
+	</complexType>
+
+	<complexType name="discType">
+		<sequence>
+			<element name="tracks" type="tns:tracksType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+		</sequence>
+        <attribute name="baseUrl" type="string"></attribute>
+        <attribute name="id" type="string"></attribute>
+		<attribute name="index" type="string"></attribute>
+		<attribute name="indexName" type="string"></attribute>
+		<attribute name="name" type="string"></attribute>
+        <attribute name="relativeUrl" type="string"></attribute>
+        <attribute name="url" type="string"></attribute>
+
+
+	</complexType>
+
+	<complexType name="discsType">
+		<sequence>
+			<element name="disc" type="tns:discType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+
+	<complexType name="tracksType">
+		<sequence>
+			<element name="track" type="tns:trackType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+
+	<complexType name="trackType">
+		<sequence>
+
+
+
+			<element name="length" type="tns:lengthType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+
+			<element name="performance" type="tns:performanceDataType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+			<element name="rawData" type="string" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+			<element name="work" type="tns:workDataType" maxOccurs="1"
+				minOccurs="0">
+			</element>
+
+		</sequence>
+		<attribute name="baseUrl" type="string"></attribute>
+		<attribute name="id" type="string"></attribute>
+
+		<attribute name="index" type="string"></attribute>
+        <attribute name="name" type="string"></attribute>
+		<attribute name="nameDetail" type="string"></attribute>
+
+
+
+
+        <attribute name="rawIndex" type="string"></attribute>
+        <attribute name="relativeUrl" type="string"></attribute>
+
+
+        <attribute name="sampleRate" type="string"></attribute>
+		<attribute name="samples" type="string"></attribute>
+
+
+		<attribute name="url" type="string"></attribute>
+
+	</complexType>
+
+	<complexType name="dataSourceType">
+		<sequence>
+			<element name="album" type="tns:albumDataType" maxOccurs="1"
+				minOccurs="1">
+			</element>
+			<element name="composers" type="tns:composersType"
+				maxOccurs="1" minOccurs="0">
+			</element>
+		</sequence>
+		<attribute name="class" type="string"></attribute>
+		<attribute name="name" type="string"></attribute>
+
+		<attribute name="providerName" type="string"></attribute>
+		<attribute name="providerUrl" type="string"></attribute>
+
+		<attribute name="version" type="string"></attribute>
+
+	</complexType>
+
+	<complexType name="dataSourcesType">
+		<sequence>
+			<element name="dataSource" type="tns:dataSourceType" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+
+	</complexType>
+
+
+	<complexType name="lookupDatasType">
+		<sequence>
+			<element name="lookupData" type="tns:lookupDataType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+
+
+	<complexType name="lookupItemType">
+        <annotation>
+        	<documentation>The lookupItem element is made of a pair name/value (self describing, like id=43548 become name=id / value = 43548)
+targetElement is a string that tells what object this lookupItem is related to. Most of the time, targetElement has the value "album", but it could be "composer", "work", "works"
+type can now only be "retrieval", for future releases, this element will permit to differentiate retrieval params from lookup params.
+subType gives more information of the type of the lookupItem, it's presently used to hold information to differentiate between "remoteRetrieval"
+(as with remote sources) and "albumDirectory" (this kind of lookup item value is automatically set to the album file directory)
+</documentation>
+        </annotation>
+
+        <attribute name="name" type="string"></attribute>
+        <attribute name="value" type="string"></attribute>
+        <!--
+        DONE: lookupItem should be simplified to only hold "name" / "value"
+         because the details of the items are held in the datasource lookup class
+
+         TODO: removing these element will break previous schema compliance, gotta check side effects
+
+                <attribute name="targetElement" type="string"></attribute>
+		<attribute name="type" >
+                    <simpleType>
+                        <restriction base="string">
+                             <enumeration value = "retrieval"/>
+                             <enumeration value = "search"/>
+                        </restriction>
+                    </simpleType>
+                </attribute>
+
+                <attribute name="subType" use="optional">
+                     <simpleType>
+                        <restriction base="string">
+                            <enumeration value = "albumDirectory"/>
+                        </restriction>
+                     </simpleType>
+                </attribute>
+        -->
+        </complexType>
+
+	<complexType name="lookupItemsType">
+		<sequence>
+			<element name="lookupItem" type="tns:lookupItemType"
+				maxOccurs="unbounded" minOccurs="0">
+			</element>
+		</sequence>
+	</complexType>
+</schema>
