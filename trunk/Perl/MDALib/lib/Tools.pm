@@ -10,6 +10,10 @@ use Log::Log4perl qw(:easy);
 use Digest::MD5 qw(md5 md5_hex md5_base64);
 use File::Spec::Functions;
 use Data::Dumper;
+use Module::Find;
+use XML::Simple;
+use XML::Compile::Schema;
+
 
 my $cacheDir = 'D:\\Dev\\Projects\\workspace\\MDA\\Playground\\html\\cache\\';
 my $tagSeparator =';';
@@ -372,6 +376,117 @@ sub URLEncode {
 	return $theURL;
 }
 
+
+# TODO: add some comments, header
+# TODO: add an option to use module
+sub findMDAReaderModules{
+	my @MDAReaderModules;
+	foreach my $myModule(  findallmod "DataSource") {
+		if($myModule =~ /.*Reader/ ) {
+# by default, do not use found module
+#			eval("use $myModule");
+#			print($myModule."\n");
+			push @MDAReaderModules, $myModule;
+		}
+	}
+	return @MDAReaderModules;
+}
+
+
+
+#our $supportedLookupItems = [
+##	albumId => {
+##		type 	=> 'id',
+##		target 	=> 'album',
+##		name 	=> 'albumSqlId',
+##		displayName => 'Album Id'
+##	}
+#	{
+#				   type => 'retrieval',
+#		targetElement => 'album',
+#		  displayName => 'Album sql Id (ex: 17:411730)',
+#				   name => 'albumSqlId'
+#	},
+#	{
+#				   type => 'retrieval',
+#		targetElement => 'album',
+#		  displayName => 'Album Url',
+#				   name => 'albumUrl'
+#	},
+#	{
+#		type 	=> 'retrieval',
+#		targetElement => 'works',
+#		displayName => 'Works Id',
+#		name => 'worksId'
+#	}
+#];
+
+sub getXmlDataSourcesDescriptions{
+	
+	my $xsdfile = "J:/documents/Projects/workspace/mda-tools/XSD/mda-management-interface.xsd";
+	my $mmiNs = "http://medee.dyndns.org/MDA/20100131/mda-management-interface";
+
+	my $schema = XML::Compile::Schema->new($xsdfile);
+	my $writer = $schema->compile(
+			WRITER => "{$mmiNs}DataSourcesDescriptionsList");
+
+	my $props = getDataSourcesDescriptions();
+	#die Dumper $props;
+	my $doc    = XML::LibXML::Document->new('1.0','UTF-8');
+	my $xml    = $writer->($doc, $props);  # partial doc
+#	print "XXXXXX\n", $xml->toString, "XXXXXX\n";
+	
+# XML::Simple version
+#	my $xml = XMLout($props, RootName => 'DataSources');
+	return $xml;
+}
+
+#our $DataSourceName = 'AMG';
+#our $DataSourceVer = '0.1';
+#our $providerName ='All Media Guide';
+#our $providerUrl ='http://www.allmusic.com';
+#our $lookupClass = 'DataSource::AMG::AMGLookup';	
+#my $amgDomain = 'www.allmusic.com';
+#my $amgDomain = 'www.allmusic.com';
+#
+#our $DataSourceName = $DataSource::AMG::AMGReader::DataSourceName;
+#our $DataSourceVer = '0.1';
+#our $providerName = $DataSource::AMG::AMGReader::providerName;
+#our $providerUrl = $DataSource::AMG::AMGReader::providerUrl;
+#our $readerClass = 'DataSource::AMG::AMGReader';
+sub getDataSourcesDescriptions{
+	# hashref to the datasource properties (to be sent to MDAJui)
+	my $dsProps;
+
+	# for each found module
+	foreach my $readerClass(  findallmod "DataSource") {
+		# if we find a Reader module, let's find information about it
+		if($readerClass =~ /.*Reader/ ) {			
+			# use the found module
+			eval("use $readerClass");
+			
+			# needed for evaluation variable name string
+			no strict 'refs';
+			my $dsProp->{perlPackage} = $readerClass;
+			$dsProp->{code} = ${$readerClass."::DataSourceName"};
+			$dsProp->{version} = ${$readerClass."::DataSourceVer"};
+			if(defined ${$readerClass."::providerUrl"}) {
+				$dsProp->{providerUrl} =  ${$readerClass."::providerUrl"};
+			}
+			$dsProp->{providerName} =  ${$readerClass."::providerName"};
+			
+			# if there's a lookupClass for this DataSource
+			if(defined( ${$readerClass."::lookupClass"} )) 
+			{	# use it and find the properties
+				eval("use ".${$readerClass."::lookupClass"});
+				$dsProp->{SupportedLookupItems} = ${${$readerClass."::lookupClass"}."::supportedLookupItems"};
+			}
+			push(@{$dsProps->{DataSourceDescription}}, $dsProp);
+			use strict 'refs';
+		}
+	}
+	return $dsProps;
+}
 
 END { }    # module clean-up code here (global destructor)
 1;
