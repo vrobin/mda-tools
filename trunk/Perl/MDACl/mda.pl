@@ -1,4 +1,4 @@
-
+#!/usr/bin/perl -w -IJ:\\documents\\Projects\\workspace\\mda-tools\\Perl\\MDALib\\lib
 
 # mda
 # -d --album-dir default = .
@@ -13,14 +13,21 @@
 #CUE
 # retrieve cuefile=xxx-disc1.cue cuefile=xxx-disc2.cue (order matters)
 
+# TODO: separate (fully or by better SoC)pure manual CLI operation from XML interface 
+#	for GUI exchange
+
 use strict;
 use utf8;
-
-use DataFile::AlbumFile;
 
 use Getopt::Long;
 use Pod::Usage;
 use Data::Dumper;
+
+use DataFile::AlbumFile;
+use Tools;
+
+
+
 
 use Cwd;
 
@@ -28,24 +35,27 @@ binmode STDOUT, ":utf8";
 binmode STDERR, ":utf8";
 
 my $conf = q(
-        log4perl.logger                    = INFO, ScreenApp
-        log4perl.appender.FileApp          = Log::Log4perl::Appender::File
-        log4perl.appender.FileApp.filename = test.log
-        log4perl.appender.FileApp.layout   = PatternLayout
-        log4perl.appender.FileApp.layout.ConversionPattern = %d> %m%n
-	    log4perl.appender.ScreenApp          = Log::Log4perl::Appender::Screen
-	    log4perl.appender.ScreenApp.stderr   = 0
-	    log4perl.appender.ScreenApp.layout   = PatternLayout
-	    log4perl.appender.ScreenApp.layout.ConversionPattern = %p: %F{1}-%L (%M)> %m%n 
-	    #%d> %m%n        
+	log4perl.logger                    = INFO, ScreenApp
+	log4perl.appender.FileApp          = Log::Log4perl::Appender::File
+	log4perl.appender.FileApp.filename = test.log
+	log4perl.appender.FileApp.layout   = PatternLayout
+	log4perl.appender.FileApp.layout.ConversionPattern = %d> %m%n
+	log4perl.appender.ScreenApp          = Log::Log4perl::Appender::Screen
+	log4perl.appender.ScreenApp.stderr   = 0
+	log4perl.appender.ScreenApp.layout   = PatternLayout
+	log4perl.appender.ScreenApp.layout.ConversionPattern = %p: %F{1}-%L (%M)> %m%n 
+    #%d> %m%n        
     );
 
 # Initialize logging behaviour
 Log::Log4perl->init( \$conf );
 
+# die Dumper Tools::getXmlDataSourcesDescriptions();
+
 my $man = 0;
 my $help = 0;
-
+my $verbosity = 0;
+my $nothing = 0;
 my $action;
 my $dsName;
 my $dataSourceClass;
@@ -59,11 +69,11 @@ my $albumFile;
 my $albumlId;
 my $worksIds;
 my $discIds;
-my $verbosity=0;
+
 
 ######### Action
-
-GetOptions('help|?' => \$help, 
+#Getopt::Long::Configure("debug");
+GetOptions(				'help|?' => \$help, 
 					'man' => \$man,
 					'album-dir|d=s' => \$albumDir,
 					'data-file|f=s' => \$dataFile,
@@ -72,13 +82,15 @@ GetOptions('help|?' => \$help,
 					# 'amg-album-sql-id=s' => sub { my $arg = shift; my $amgSqlId = shift; }
 					'album-id|ai=s' => \$albumlId,
 					'disc-id|di=s' => \$discIds,
-					'works-ids|di=s' => \$worksIds,
+					'works-ids|wi=s' => \$worksIds,
 					'target|t=s' => \$targetString,					
 					'verbosity|v=i' => \$verbosity,
 					'data-exporter|de=s' => \$exporterName
 					) or pod2usage(2);
-if($help) { pod2usage(1); }
- if($man) {pod2usage(-exitstatus => 0, -verbose => 2);}
+
+# if help option or nothing on if there is no options
+if($help or ($#ARGV == -1 ) ) { pod2usage(-exitstatus => -1); }
+if($man) {pod2usage(-exitstatus => -1, -verbose => 2);}
 
 
 # Current directory
@@ -106,9 +118,14 @@ for my $i (0..$#ARGV)  {
 			unless(defined($action)) {$action = splice @ARGV, $i, 1; } 
 			last SWITCH; 
 		}		
-		my $nothing = 1;
+		if(  $ARGV[$i] =~  /^(dsd|datasources)$/ ) { 
+			print(Tools::getXmlDataSourcesDescriptions()->toString(), "\n");
+			exit 0;
+		}
+		$nothing = 1;
     }
 }
+if($nothing == 1) { pod2usage(-exitstatus => -1, -output => ">&STDERR"); }
 #utf8::encode($albumDir);
 #$albumDir='O:\M\Travail\Test-folder[(1)]azeéàùuë';
 #print STDERR (join("|",@ARGV),"\n");
@@ -162,7 +179,8 @@ if( defined($exporterName) ) {
 
 SWITCH: {
 	if(  $action =~  /^retrieve$/) {
-		unless($dsName eq 'CDU') { #TODO: to be removed as soon as CDU dataSource exists, used to save CDUID
+		#TODO: to be removed as soon as CDU dataSource exists, used to save CDUID
+		unless($dsName eq 'CDU') { 
 			my $dataSource = $dataSourceClass->new();
 			$albumFile->addDataSource($dataSource);
 			$albumFile->dataSource($dsName)->retrieve();
@@ -190,8 +208,9 @@ SWITCH: {
 		print($albumFile->dataSource($dsName)->toString($verbosity));
 		last SWITCH;		
 	}	
-	my $nothing = 1;
+	$nothing = 1;
 }
+if($nothing == 1) { pod2usage(-exitstatus => -1); }
 
 # set MY /a/d*/t*/name value="Alfred is king"
 # set MY /a/d*/t*/name "Alfred is king"
@@ -202,7 +221,7 @@ SWITCH: {
 # restoring caller working directory
 chdir($origPath) or ERROR("Unable to chdir to original path $origPath");
 print("Finished without major errors.");
-
+exit 0;
 __END__
 
 =head1 NAME
@@ -233,6 +252,7 @@ mda  <action> <dataSource|dataExporter> [options]
       lookup	search datasource for possible albums, display candidates
       display   display datasource collected information in a human readable format
       set		define a property or a set of properties as specified in -target parameter
+      datasources	list datasources descriptions in xml format
 
    DataSource:
       AMGClassical	all music classical 
