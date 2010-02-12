@@ -28,6 +28,14 @@ our @EXPORT_OK;
 #use HTML::TreeBuilder::XPath;
 use HTML::Entities;
 use Data::Dumper;
+
+use File::Next;
+use Benchmark;
+use Cwd;
+use Audio::FLAC::Header;
+use Log::Log4perl qw(:easy);
+
+use Tools;
 use DataFile::Album;
 use DataFile::Award;
 use DataFile::Credit;
@@ -41,12 +49,6 @@ use DataFile::Rating;
 use DataFile::Tag;
 use DataFile::Track;
 use DataFile::Work;
-use Tools;
-use File::Next;
-use Benchmark;
-use Cwd;
-use Audio::FLAC::Header;
-use Log::Log4perl qw(:easy);
 
 our $DataSourceName = 'FIL';
 our $DataSourceVer = '0.1';
