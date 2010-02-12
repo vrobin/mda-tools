@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://medee.dyndns.org/MDA/20100131/mda-management-interface"
+    xmlns:tns="http://medee.dyndns.org/MDA/20100131/mda-management-interface"
+    elementFormDefault="qualified">
+    <xsd:complexType name="DataSourcesDescriptionsListStructure">
+        <xsd:sequence>
+            <xsd:element name="DataSourceDescription" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="SupportedLookupItems" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:sequence/>
+                                <xsd:attribute name="displayName" type="xsd:string"/>
+                                <xsd:attribute name="name" type="xsd:string"/>
+                                <xsd:attribute name="targetElement">
+                                    <xsd:simpleType>
+                                        <xsd:restriction base="xsd:string">
+                                            <xsd:enumeration value="work"/>
+                                            <xsd:enumeration value="album"/>
+                                            <xsd:enumeration value="works"/>
+                                            <xsd:enumeration value="composer"/>
+                                        </xsd:restriction>
+                                    </xsd:simpleType>
+                                </xsd:attribute>
+                                <xsd:attribute name="type">
+                                    <xsd:simpleType>
+                                    <xsd:restriction base="xsd:string">
+                                      <xsd:enumeration value="retrieval"/>
+                                      <xsd:enumeration value="search"/>
+                                    </xsd:restriction>
+                                    </xsd:simpleType>
+                                </xsd:attribute>
+                                <xsd:attribute name="subType">
+                                    <xsd:simpleType>
+                                    <xsd:restriction base="xsd:string">
+                                      <xsd:enumeration value = "albumDirectory"/>
+                                    </xsd:restriction>
+                                    </xsd:simpleType>
+                                </xsd:attribute>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                    <xsd:attribute name="code" type="xsd:string"/>
+                    <xsd:attribute name="perlPackage" type="xsd:string"/>
+                    <xsd:attribute use="optional" name="providerName" type="xsd:string"/>
+                    <xsd:attribute name="providerUrl" type="xsd:string" use="optional"/>
+                    <xsd:attribute name="version" type="xsd:string"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="DataSourcesDescriptionsList" type="tns:DataSourcesDescriptionsListStructure"></xsd:element>
+</xsd:schema>
+
+
